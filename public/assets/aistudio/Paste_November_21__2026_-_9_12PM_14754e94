@@ -1,0 +1,1282 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PriorityFlow — Priority Task Manager Dashboard</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">/** @type {import('tailwindcss').Config} */
+globalThis.tailwind = globalThis.tailwind || {};
+globalThis.tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'success': '#15803D',
+        'on-success': '#FFFFFF',
+        'success-container': '#DCFCE7',
+        'on-success-container': '#166534',
+        'warning': '#B45309',
+        'on-warning': '#FFFFFF',
+        'warning-container': '#FEF3C7',
+        'on-warning-container': '#92400E',
+        'info': '#1D4ED8',
+        'on-info': '#FFFFFF',
+        'info-container': '#DBEAFE',
+        'on-info-container': '#1E40AF',
+        'light-primary': '#004AC6',
+        'light-on-primary': '#FFFFFF',
+        'light-primary-container': '#2563EB',
+        'light-on-primary-container': '#EEEFFF',
+        'light-secondary': '#712AE2',
+        'light-on-secondary': '#FFFFFF',
+        'light-secondary-container': '#8A4CFC',
+        'light-on-secondary-container': '#FFFBFF',
+        'light-tertiary': '#943700',
+        'light-on-tertiary': '#FFFFFF',
+        'light-tertiary-container': '#BC4800',
+        'light-on-tertiary-container': '#FFEDE6',
+        'light-error': '#BA1A1A',
+        'light-on-error': '#FFFFFF',
+        'light-error-container': '#FFDAD6',
+        'light-on-error-container': '#93000A',
+        'light-background': '#FAF8FF',
+        'light-on-background': '#131B2E',
+        'light-surface': '#FAF8FF',
+        'light-surface-dim': '#D2D9F4',
+        'light-surface-bright': '#FAF8FF',
+        'light-surface-container-lowest': '#FFFFFF',
+        'light-surface-container-low': '#F2F3FF',
+        'light-surface-container': '#EAEDFF',
+        'light-surface-container-high': '#E2E7FF',
+        'light-surface-container-highest': '#DAE2FD',
+        'light-on-surface': '#131B2E',
+        'light-surface-variant': '#DFE1F4',
+        'light-on-surface-variant': '#434655',
+        'light-outline': '#737686',
+        'light-outline-variant': '#C3C6D7',
+        'light-inverse-surface': '#283044',
+        'light-inverse-on-surface': '#EEF0FF',
+        'light-inverse-primary': '#B4C5FF',
+        'light-shadow': '#000000',
+        'light-scrim': '#000000',
+        'dark-primary': '#B4C5FF',
+        'dark-on-primary': '#002A78',
+        'dark-primary-container': '#2563EB',
+        'dark-on-primary-container': '#EEEFFF',
+        'dark-secondary': '#D2BBFF',
+        'dark-on-secondary': '#3F008E',
+        'dark-secondary-container': '#6001D1',
+        'dark-on-secondary-container': '#C9AEFF',
+        'dark-tertiary': '#FFB596',
+        'dark-on-tertiary': '#581E00',
+        'dark-tertiary-container': '#BC4800',
+        'dark-on-tertiary-container': '#FFEDE6',
+        'dark-error': '#FFB4AB',
+        'dark-on-error': '#690005',
+        'dark-error-container': '#93000A',
+        'dark-on-error-container': '#FFDAD6',
+        'dark-background': '#0B1326',
+        'dark-on-background': '#DAE2FD',
+        'dark-surface': '#0B1326',
+        'dark-surface-dim': '#0B1326',
+        'dark-surface-bright': '#31394D',
+        'dark-surface-container-lowest': '#060E20',
+        'dark-surface-container-low': '#131B2E',
+        'dark-surface-container': '#171F33',
+        'dark-surface-container-high': '#222A3D',
+        'dark-surface-container-highest': '#2D3449',
+        'dark-on-surface': '#DAE2FD',
+        'dark-surface-variant': '#434655',
+        'dark-on-surface-variant': '#C3C6D7',
+        'dark-outline': '#8D90A0',
+        'dark-outline-variant': '#434655',
+        'dark-inverse-surface': '#DAE2FD',
+        'dark-inverse-on-surface': '#283044',
+        'dark-inverse-primary': '#0053DB',
+        'dark-shadow': '#000000',
+        'dark-scrim': '#000000',
+      },
+      borderRadius: {
+        'sm': '6px',
+        'DEFAULT': '8px',
+        'md': '12px',
+        'lg': '16px',
+        'xl': '20px',
+        'full': '9999px',
+      },
+      spacing: {
+        'gutter-xs': '4px',
+        'gutter-sm': '8px',
+        'gutter-md': '16px',
+        'gutter-lg': '24px',
+        'gutter-xl': '32px',
+        'section': '24px',
+        'page-margin': '24px',
+      },
+      fontFamily: {
+        'display': ['"Mulish"', 'sans-serif'],
+        'headline': ['"Mulish"', 'sans-serif'],
+        'title': ['"Mulish"', 'sans-serif'],
+        'body': ['"Instrument Sans"', 'sans-serif'],
+        'label': ['"Instrument Sans"', 'sans-serif'],
+        'mono': ['"Source Code Pro"', 'monospace'],
+      },
+      fontSize: {
+        'display-lg': ['36px', { lineHeight: '44px', letterSpacing: '-0.5px', fontWeight: '700' }],
+        'display-lg-mobile': ['28px', { lineHeight: '34px', letterSpacing: '-0.25px', fontWeight: '700' }],
+        'headline-lg': ['24px', { lineHeight: '32px', letterSpacing: '-0.25px', fontWeight: '700' }],
+        'headline-md': ['18px', { lineHeight: '24px', letterSpacing: '0px', fontWeight: '700' }],
+        'title-md': ['16px', { lineHeight: '22px', letterSpacing: '0px', fontWeight: '600' }],
+        'body-lg': ['15px', { lineHeight: '22px', letterSpacing: '0px', fontWeight: '400' }],
+        'body-md': ['14px', { lineHeight: '20px', letterSpacing: '0px', fontWeight: '400' }],
+        'body-sm': ['13px', { lineHeight: '18px', letterSpacing: '0px', fontWeight: '400' }],
+        'label-lg': ['14px', { lineHeight: '20px', letterSpacing: '0px', fontWeight: '600' }],
+        'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.2px', fontWeight: '600' }],
+        'label-sm': ['11px', { lineHeight: '14px', letterSpacing: '0.3px', fontWeight: '600' }],
+        'mono-md': ['13px', { lineHeight: '18px', letterSpacing: '0px', fontWeight: '500' }],
+        'mono-sm': ['12px', { lineHeight: '16px', letterSpacing: '0px', fontWeight: '500' }],
+      },
+      transitionDuration: {
+        'state-change': '150ms',
+        'surface-enter': '220ms',
+        'surface-exit': '150ms',
+      },
+      transitionDelay: {
+        'state-change': '0ms',
+        'surface-enter': '0ms',
+        'surface-exit': '0ms',
+      },
+      transitionTimingFunction: {
+        'state-change': 'ease-out',
+        'surface-enter': 'cubic-bezier(0.2, 0, 0, 1)',
+        'surface-exit': 'cubic-bezier(0.3, 0, 1, 1)',
+      },
+    },
+  },
+};
+if (typeof module !== 'undefined') module.exports = globalThis.tailwind.config;
+</script>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&amp;family=Mulish:wght@600;700;800&amp;family=Source+Code+Pro:wght@500;600&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+  <style>
+    .material-symbols-outlined, .material-symbols-rounded, .material-symbols-sharp, .material-icons {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      line-height: 1 !important;
+      box-sizing: content-box;
+      overflow: hidden;
+      white-space: nowrap;
+      direction: ltr;
+      vertical-align: middle;
+    }
+    dialog::backdrop {
+      background-color: rgba(19, 27, 46, 0.42);
+    }
+  </style>
+</head>
+<body class="bg-light-surface text-light-on-surface font-body antialiased selection:bg-light-primary-container selection:text-light-on-primary-container">
+  <div id="app-root" class="min-h-[1024px] flex bg-light-surface" data-stitch-vh="min-h-[1024px]===min-h-screen">
+    <!-- Mobile Sidebar Backdrop -->
+    <div id="mobile-sidebar-backdrop" class="fixed inset-0 bg-light-inverse-surface/40 z-30 hidden lg:hidden" onclick="toggleMobileSidebar(false)"></div>
+
+    <!-- Collapsible Sidebar -->
+    <aside id="sidebar" class="fixed lg:sticky top-0 left-0 z-40 min-h-[1024px] w-60 bg-light-surface-container-lowest border-r border-light-outline-variant/60 flex flex-col justify-between transition-transform duration-surface-enter ease-surface-enter -translate-x-full lg:translate-x-0 shrink-0" data-stitch-vh="min-h-[1024px]===min-h-screen">
+      <div>
+        <!-- Brand Header -->
+        <div class="h-16 px-4 flex items-center justify-between border-b border-light-outline-variant/50">
+          <div class="flex items-center gap-2.5 overflow-hidden">
+            <div class="w-9 h-9 rounded-md bg-light-primary text-light-on-primary flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[20px]">layers</span>
+            </div>
+            <span id="brand-text" class="font-headline text-headline-md text-light-on-surface tracking-tight whitespace-nowrap" data-design-text-token="headline-md">PriorityFlow</span>
+          </div>
+          <button type="button" id="sidebar-collapse-btn" onclick="toggleSidebarCollapse()" aria-label="Collapse sidebar" class="hidden lg:inline-flex items-center justify-center w-8 h-8 rounded text-light-on-surface-variant hover:bg-light-surface-container-low hover:text-light-on-surface transition-colors duration-state-change">
+            <span id="collapse-icon" class="material-symbols-outlined text-[20px]">menu_open</span>
+          </button>
+          <button type="button" onclick="toggleMobileSidebar(false)" aria-label="Close navigation" class="lg:hidden inline-flex items-center justify-center w-8 h-8 rounded text-light-on-surface-variant hover:bg-light-surface-container-low">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <!-- Primary Navigation -->
+        <nav class="p-3 space-y-1" aria-label="Main navigation">
+          <button type="button" data-nav="dashboard" onclick="switchView(&#39;dashboard&#39;)" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded text-left transition-colors duration-state-change bg-light-surface-container text-light-primary">
+            <span class="material-symbols-outlined text-[20px] shrink-0">dashboard</span>
+            <span class="nav-label font-label text-label-lg whitespace-nowrap" data-design-text-token="label-lg">Dashboard</span>
+          </button>
+          <button type="button" data-nav="all" onclick="switchView(&#39;all&#39;)" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded text-left transition-colors duration-state-change text-light-on-surface-variant hover:bg-light-surface-container-low hover:text-light-on-surface">
+            <span class="material-symbols-outlined text-[20px] shrink-0">list_alt</span>
+            <span class="nav-label font-label text-label-lg whitespace-nowrap" data-design-text-token="label-lg">All Tasks</span>
+          </button>
+          <button type="button" data-nav="pending" onclick="switchView(&#39;pending&#39;)" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded text-left transition-colors duration-state-change text-light-on-surface-variant hover:bg-light-surface-container-low hover:text-light-on-surface">
+            <span class="material-symbols-outlined text-[20px] shrink-0">pending_actions</span>
+            <span class="nav-label font-label text-label-lg whitespace-nowrap" data-design-text-token="label-lg">Pending Tasks</span>
+          </button>
+          <button type="button" data-nav="completed" onclick="switchView(&#39;completed&#39;)" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded text-left transition-colors duration-state-change text-light-on-surface-variant hover:bg-light-surface-container-low hover:text-light-on-surface">
+            <span class="material-symbols-outlined text-[20px] shrink-0">task_alt</span>
+            <span class="nav-label font-label text-label-lg whitespace-nowrap" data-design-text-token="label-lg">Completed Tasks</span>
+          </button>
+          <button type="button" data-nav="analytics" onclick="switchView(&#39;analytics&#39;)" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded text-left transition-colors duration-state-change text-light-on-surface-variant hover:bg-light-surface-container-low hover:text-light-on-surface">
+            <span class="material-symbols-outlined text-[20px] shrink-0">analytics</span>
+            <span class="nav-label font-label text-label-lg whitespace-nowrap" data-design-text-token="label-lg">Analytics</span>
+          </button>
+          <button type="button" data-nav="settings" onclick="switchView(&#39;settings&#39;)" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded text-left transition-colors duration-state-change text-light-on-surface-variant hover:bg-light-surface-container-low hover:text-light-on-surface">
+            <span class="material-symbols-outlined text-[20px] shrink-0">settings</span>
+            <span class="nav-label font-label text-label-lg whitespace-nowrap" data-design-text-token="label-lg">Settings</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Queue Engine Footer Badge -->
+      <div id="sidebar-footer" class="p-3 border-t border-light-outline-variant/50">
+        <div class="rounded-md bg-light-surface-container-low p-3">
+          <div class="flex items-center gap-2 text-light-on-surface mb-1">
+            <span class="material-symbols-outlined text-[16px] text-light-secondary">memory</span>
+            <span class="font-label text-label-md" data-design-text-token="label-md">Array Queue Engine</span>
+          </div>
+          <p class="font-body text-body-sm text-light-on-surface-variant" data-design-text-token="body-sm">O(n) linear scan · FIFO tie-break</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Column -->
+    <div class="flex-1 min-w-0 flex flex-col">
+      <!-- Top Navbar -->
+      <header class="sticky top-0 z-20 h-16 bg-light-surface-container-lowest border-b border-light-outline-variant/60 px-4 sm:px-6 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3 min-w-0">
+          <button type="button" onclick="toggleMobileSidebar(true)" aria-label="Open navigation" class="lg:hidden inline-flex items-center justify-center w-9 h-9 rounded text-light-on-surface-variant hover:bg-light-surface-container-low">
+            <span class="material-symbols-outlined text-[22px]">menu</span>
+          </button>
+          <h1 id="page-heading" class="font-headline text-headline-lg text-light-on-surface truncate" data-design-text-token="headline-lg">Dashboard</h1>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <!-- Global Search Bar -->
+          <div class="relative hidden sm:block w-64 md:w-72">
+            <span class="material-symbols-outlined text-[18px] text-light-on-surface-variant absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">search</span>
+            <input id="global-search-input" type="search" placeholder="Search tasks by ID or name..." oninput="handleSearchInput(this.value)" class="w-full pl-9 pr-3 py-1.5 rounded bg-light-surface-container-low border border-light-outline-variant/60 text-body-md text-light-on-surface placeholder:text-light-outline focus:outline-none focus:ring-2 focus:ring-light-primary focus:bg-light-surface-container-lowest transition-colors duration-state-change">
+          </div>
+
+          <!-- Notification Bell -->
+          <div class="relative">
+            <button type="button" id="notif-btn" onclick="toggleNotifications()" aria-label="Notifications" class="relative inline-flex items-center justify-center w-9 h-9 rounded text-light-on-surface-variant hover:bg-light-surface-container-low hover:text-light-on-surface transition-colors duration-state-change">
+              <span class="material-symbols-outlined text-[20px]">notifications</span>
+              <span id="notif-dot" data-component-id="badge-dot" data-component-type="badge" data-component-variant="dot" class="w-2 h-2 rounded-full bg-light-secondary absolute top-2 right-2"></span>
+            </button>
+
+            <!-- Notifications Popover -->
+            <div id="notif-popover" class="hidden absolute right-0 mt-2 w-80 rounded-lg bg-light-surface-container-lowest border border-light-outline-variant/60 shadow-lg p-4 z-50">
+              <div class="flex items-center justify-between mb-3">
+                <span class="font-title text-title-md text-light-on-surface" data-design-text-token="title-md">Activity Log</span>
+                <button type="button" onclick="clearNotifications()" class="font-label text-label-sm text-light-primary hover:underline">Clear</button>
+              </div>
+              <ul id="notif-list" class="space-y-2.5 max-h-60 overflow-y-auto"></ul>
+            </div>
+          </div>
+
+          <!-- User Profile Avatar -->
+          <div class="flex items-center gap-2.5 pl-2 border-l border-light-outline-variant/50">
+            <div class="w-9 h-9 rounded-full bg-light-surface-container text-light-primary font-headline text-label-lg flex items-center justify-center border border-light-outline-variant/60" title="Alex Rivera — Systems Lead">
+              AR
+            </div>
+            <div class="hidden md:block leading-tight">
+              <p class="font-label text-label-md text-light-on-surface" data-design-text-token="label-md">Alex Rivera</p>
+              <p class="font-body text-label-sm text-light-on-surface-variant" data-design-text-token="label-sm">Systems Lead</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Workspace -->
+      <main class="flex-1 p-4 sm:p-6 max-w-[1440px] w-full mx-auto space-y-6">
+        <!-- Action Header Bar -->
+        <div id="action-bar" class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <p id="view-subtitle" class="font-body text-body-md text-light-on-surface-variant" data-design-text-token="body-md">
+              Manage tasks in insertion order and process the highest-priority item via linear queue search.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-3 shrink-0">
+            <button type="button" onclick="openAddModal()" data-component-id="button-with-icon" data-component-type="button" data-component-variant="with-icon" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded bg-light-primary text-light-on-primary hover:bg-light-primary-container transition-colors duration-state-change ease-state-change focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-primary focus-visible:ring-offset-2">
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">add</span>
+              <span class="font-label text-label-lg" data-design-text-token="label-lg">Add New Task</span>
+            </button>
+
+            <button type="button" id="process-next-btn" onclick="openProcessModal()" data-component-id="button-accent-with-icon" data-component-type="button" data-component-variant="with-icon" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded bg-light-secondary text-light-on-secondary hover:bg-light-secondary-container transition-colors duration-state-change ease-state-change focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-light-secondary focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">play_arrow</span>
+              <span class="font-label text-label-lg" data-design-text-token="label-lg">Process Next Task</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Statistics Cards -->
+        <section id="stats-section" aria-label="Task statistics" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 items-stretch">
+          <article data-component-id="card-elevated" data-component-type="card" data-component-variant="elevated" class="h-full bg-light-surface-container-lowest border border-light-outline-variant/60 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow duration-state-change">
+            <header class="flex items-center justify-between mb-3">
+              <h2 class="font-label text-label-md text-light-on-surface-variant" data-design-text-token="label-md">Total Tasks</h2>
+              <span class="w-9 h-9 rounded-md bg-light-surface-container-low text-light-primary flex items-center justify-center">
+                <span class="material-symbols-outlined text-[20px]">assignment</span>
+              </span>
+            </header>
+            <p id="stat-total" class="font-headline text-display-lg-mobile sm:text-display-lg text-light-on-surface tabular-nums" data-design-text-token="display-lg">0</p>
+            <p class="font-body text-body-sm text-light-on-surface-variant mt-1" data-design-text-token="body-sm">All tasks in array</p>
+          </article>
+
+          <article data-component-id="card-elevated" data-component-type="card" data-component-variant="elevated" class="h-full bg-light-surface-container-lowest border border-light-outline-variant/60 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow duration-state-change">
+            <header class="flex items-center justify-between mb-3">
+              <h2 class="font-label text-label-md text-light-on-surface-variant" data-design-text-token="label-md">Pending Tasks</h2>
+              <span class="w-9 h-9 rounded-md bg-warning-container text-on-warning-container flex items-center justify-center">
+                <span class="material-symbols-outlined text-[20px]">hourglass_top</span>
+              </span>
+            </header>
+            <p id="stat-pending" class="font-headline text-display-lg-mobile sm:text-display-lg text-light-on-surface tabular-nums" data-design-text-token="display-lg">0</p>
+            <p class="font-body text-body-sm text-light-on-surface-variant mt-1" data-design-text-token="body-sm">Active in priority queue</p>
+          </article>
+
+          <article data-component-id="card-elevated" data-component-type="card" data-component-variant="elevated" class="h-full bg-light-surface-container-lowest border border-light-outline-variant/60 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow duration-state-change">
+            <header class="flex items-center justify-between mb-3">
+              <h2 class="font-label text-label-md text-light-on-surface-variant" data-design-text-token="label-md">Completed Tasks</h2>
+              <span class="w-9 h-9 rounded-md bg-success-container text-on-success-container flex items-center justify-center">
+                <span class="material-symbols-outlined text-[20px]">check_circle</span>
+              </span>
+            </header>
+            <p id="stat-completed" class="font-headline text-display-lg-mobile sm:text-display-lg text-light-on-surface tabular-nums" data-design-text-token="display-lg">0</p>
+            <p class="font-body text-body-sm text-light-on-surface-variant mt-1" data-design-text-token="body-sm">Processed from queue</p>
+          </article>
+
+          <article data-component-id="card-elevated" data-component-type="card" data-component-variant="elevated" class="h-full bg-light-surface-container-lowest border border-light-outline-variant/60 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow duration-state-change">
+            <header class="flex items-center justify-between mb-3">
+              <h2 class="font-label text-label-md text-light-on-surface-variant" data-design-text-token="label-md">High Priority Tasks</h2>
+              <span class="w-9 h-9 rounded-md bg-light-error-container text-light-on-error-container flex items-center justify-center">
+                <span class="material-symbols-outlined text-[20px]">priority_high</span>
+              </span>
+            </header>
+            <p id="stat-high" class="font-headline text-display-lg-mobile sm:text-display-lg text-light-on-surface tabular-nums" data-design-text-token="display-lg">0</p>
+            <p class="font-body text-body-sm text-light-on-surface-variant mt-1" data-design-text-token="body-sm">Pending weight (5) items</p>
+          </article>
+        </section>
+
+        <!-- Priority Queue Visualization Section -->
+        <section id="queue-section" class="bg-light-surface-container-lowest border border-light-outline-variant/60 rounded-lg p-5 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="font-headline text-headline-md text-light-on-surface" data-design-text-token="headline-md">Queue Visualization</h2>
+                <span id="queue-count-pill" class="px-2 py-0.5 rounded-full bg-light-surface-container text-light-primary font-mono text-mono-sm tabular-nums" data-design-text-token="mono-sm">0 pending</span>
+              </div>
+              <p class="font-body text-body-sm text-light-on-surface-variant mt-0.5" data-design-text-token="body-sm">
+                Unsorted insertion-order array. Linear search selects the highlighted highest-priority task (FIFO on ties).
+              </p>
+            </div>
+          </div>
+
+          <div id="queue-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 items-stretch">
+            <!-- Queue cards rendered by JS -->
+          </div>
+        </section>
+
+        <!-- Main Task Management Table Section -->
+        <section id="table-section" data-component-id="table-interactive" data-component-type="table" data-component-variant="interactive" class="bg-light-surface-container-lowest border border-light-outline-variant/60 rounded-lg shadow-sm overflow-hidden">
+          <!-- Table Toolbar -->
+          <div class="p-4 sm:p-5 border-b border-light-outline-variant/50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <h2 class="font-headline text-headline-md text-light-on-surface" data-design-text-token="headline-md">Task Management</h2>
+              <p id="table-summary" class="font-body text-body-sm text-light-on-surface-variant" data-design-text-token="body-sm">Showing all tasks</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5">
+              <!-- Mobile/Inline Search -->
+              <div class="relative flex-1 sm:flex-initial min-w-[180px]">
+                <span class="material-symbols-outlined text-[18px] text-light-on-surface-variant absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">search</span>
+                <input id="table-search-input" type="search" placeholder="Filter tasks..." oninput="handleSearchInput(this.value)" class="w-full pl-9 pr-3 py-1.5 rounded bg-light-surface-container-low border border-light-outline-variant/60 text-body-sm text-light-on-surface placeholder:text-light-outline focus:outline-none focus:ring-2 focus:ring-light-primary focus:bg-light-surface-container-lowest">
+              </div>
+
+              <!-- Priority Filter -->
+              <select id="priority-filter" onchange="handlePriorityFilter(this.value)" aria-label="Filter by priority" class="px-3 py-1.5 rounded bg-light-surface-container-low border border-light-outline-variant/60 text-body-sm text-light-on-surface focus:outline-none focus:ring-2 focus:ring-light-primary">
+                <option value="all">All Priorities</option>
+                <option value="5">High (5)</option>
+                <option value="3">Medium (3)</option>
+                <option value="1">Low (1)</option>
+              </select>
+
+              <!-- Status Filter -->
+              <select id="status-filter" onchange="handleStatusFilter(this.value)" aria-label="Filter by status" class="px-3 py-1.5 rounded bg-light-surface-container-low border border-light-outline-variant/60 text-body-sm text-light-on-surface focus:outline-none focus:ring-2 focus:ring-light-primary">
+                <option value="all">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Completed">Completed</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Responsive Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-light-surface-container-low border-b border-light-outline-variant/60">
+                <tr>
+                  <th scope="col" class="px-5 py-3 text-light-on-surface-variant uppercase tracking-wider">
+                    <span class="font-label text-label-md" data-design-text-token="label-md">Task ID</span>
+                  </th>
+                  <th scope="col" class="px-5 py-3 text-light-on-surface-variant uppercase tracking-wider">
+                    <span class="font-label text-label-md" data-design-text-token="label-md">Task Name</span>
+                  </th>
+                  <th scope="col" class="px-5 py-3 text-light-on-surface-variant uppercase tracking-wider">
+                    <span class="font-label text-label-md" data-design-text-token="label-md">Priority</span>
+                  </th>
+                  <th scope="col" class="px-5 py-3 text-light-on-surface-variant uppercase tracking-wider">
+                    <span class="font-label text-label-md" data-design-text-token="label-md">Status</span>
+                  </th>
+                  <th scope="col" class="px-5 py-3 text-right text-light-on-surface-variant uppercase tracking-wider">
+                    <span class="font-label text-label-md" data-design-text-token="label-md">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="task-table-body" class="divide-y divide-light-outline-variant/40">
+                <!-- Rows rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Analytics Section -->
+        <section id="analytics-section" class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+          <!-- Completed vs Pending Chart Card -->
+          <article class="h-full bg-light-surface-container-lowest border border-light-outline-variant/60 rounded-lg p-5 shadow-sm flex flex-col justify-between">
+            <div>
+              <h2 class="font-headline text-headline-md text-light-on-surface" data-design-text-token="headline-md">Completion Breakdown</h2>
+              <p class="font-body text-body-sm text-light-on-surface-variant mt-0.5" data-design-text-token="body-sm">Completed vs. pending tasks across the array</p>
+            </div>
+
+            <div class="my-6 flex flex-col sm:flex-row items-center gap-6">
+              <!-- Clean SVG Donut -->
+              <div class="relative w-36 h-36 shrink-0">
+                <svg viewBox="0 0 120 120" class="w-full h-full -rotate-90">
+                  <circle cx="60" cy="60" r="48" fill="none" stroke="#EAEDFF" stroke-width="14"></circle>
+                  <circle id="donut-completed-arc" cx="60" cy="60" r="48" fill="none" stroke="#004AC6" stroke-width="14" stroke-linecap="round" stroke-dasharray="301.59" stroke-dashoffset="301.59"></circle>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span id="analytics-completion-pct" class="font-headline text-headline-lg text-light-on-surface tabular-nums" data-design-text-token="headline-lg">0%</span>
+                  <span class="font-label text-label-sm text-light-on-surface-variant" data-design-text-token="label-sm">Done</span>
+                </div>
+              </div>
+
+              <div class="flex-1 w-full space-y-4">
+                <div>
+                  <div class="flex items-center justify-between mb-1.5">
+                    <span class="font-label text-label-md text-light-on-surface" data-design-text-token="label-md">Completed</span>
+                    <span id="analytics-completed-count" class="font-mono text-mono-sm text-light-on-surface-variant tabular-nums" data-design-text-token="mono-sm">0 tasks</span>
+                  </div>
+                  <div class="w-full h-2.5 rounded-full bg-light-surface-container overflow-hidden">
+                    <div id="bar-completed" class="h-full rounded-full bg-light-primary transition-all duration-surface-enter" style="width: 0%"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="flex items-center justify-between mb-1.5">
+                    <span class="font-label text-label-md text-light-on-surface" data-design-text-token="label-md">Pending in Queue</span>
+                    <span id="analytics-pending-count" class="font-mono text-mono-sm text-light-on-surface-variant tabular-nums" data-design-text-token="mono-sm">0 tasks</span>
+                  </div>
+                  <div class="w-full h-2.5 rounded-full bg-light-surface-container overflow-hidden">
+                    <div id="bar-pending" class="h-full rounded-full bg-light-secondary transition-all duration-surface-enter" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-light-outline-variant/40 flex items-center justify-between text-body-sm text-light-on-surface-variant">
+              <span data-design-text-token="body-sm">Total tracked tasks</span>
+              <span id="analytics-total-tasks" class="font-mono text-mono-md text-light-on-surface tabular-nums" data-design-text-token="mono-md">0</span>
+            </div>
+          </article>
+
+          <!-- Priority Distribution Card -->
+          <article class="h-full bg-light-surface-container-lowest border border-light-outline-variant/60 rounded-lg p-5 shadow-sm flex flex-col justify-between">
+            <div>
+              <h2 class="font-headline text-headline-md text-light-on-surface" data-design-text-token="headline-md">Priority Distribution</h2>
+              <p class="font-body text-body-sm text-light-on-surface-variant mt-0.5 text-pretty" data-design-text-token="body-sm">Task volume by priority weight</p>
+            </div>
+
+            <div class="my-6 space-y-5">
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="inline-flex items-center gap-2 font-label text-label-md text-light-on-surface" data-design-text-token="label-md">
+                    <span class="w-2.5 h-2.5 rounded-full bg-light-error"></span>
+                    High Priority (5)
+                  </span>
+                  <span id="dist-high-label" class="font-mono text-mono-sm text-light-on-surface-variant tabular-nums" data-design-text-token="mono-sm">0 (0%)</span>
+                </div>
+                <div class="w-full h-3 rounded-full bg-light-surface-container overflow-hidden">
+                  <div id="dist-high-bar" class="h-full rounded-full bg-light-error transition-all duration-surface-enter" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="inline-flex items-center gap-2 font-label text-label-md text-light-on-surface" data-design-text-token="label-md">
+                    <span class="w-2.5 h-2.5 rounded-full bg-warning"></span>
+                    Medium Priority (3)
+                  </span>
+                  <span id="dist-med-label" class="font-mono text-mono-sm text-light-on-surface-variant tabular-nums" data-design-text-token="mono-sm">0 (0%)</span>
+                </div>
+                <div class="w-full h-3 rounded-full bg-light-surface-container overflow-hidden">
+                  <div id="dist-med-bar" class="h-full rounded-full bg-warning transition-all duration-surface-enter" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="inline-flex items-center gap-2 font-label text-label-md text-light-on-surface" data-design-text-token="label-md">
+                    <span class="w-2.5 h-2.5 rounded-full bg-info"></span>
+                    Low Priority (1)
+                  </span>
+                  <span id="dist-low-label" class="font-mono text-mono-sm text-light-on-surface-variant tabular-nums" data-design-text-token="mono-sm">0 (0%)</span>
+                </div>
+                <div class="w-full h-3 rounded-full bg-light-surface-container overflow-hidden">
+                  <div id="dist-low-bar" class="h-full rounded-full bg-info transition-all duration-surface-enter" style="width: 0%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-light-outline-variant/40 flex items-center justify-between text-body-sm text-light-on-surface-variant">
+              <span data-design-text-token="body-sm">Selection rule</span>
+              <span class="font-mono text-mono-sm text-light-secondary" data-design-text-token="mono-sm">Max weight · FIFO tie-break</span>
+            </div>
+          </article>
+        </section>
+
+        <!-- Settings Section (shown when Settings nav is active) -->
+        <section id="settings-section" class="hidden bg-light-surface-container-lowest border border-light-outline-variant/60 rounded-lg p-6 shadow-sm space-y-6">
+          <div>
+            <h2 class="font-headline text-headline-md text-light-on-surface" data-design-text-token="headline-md">Queue &amp; Storage Settings</h2>
+            <p class="font-body text-body-sm text-light-on-surface-variant mt-1" data-design-text-token="body-sm">
+              PriorityFlow stores your task array in browser localStorage and preserves insertion order without sorting.
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 rounded-lg border border-light-outline-variant/60 bg-light-surface-container-low flex items-center justify-between gap-4">
+              <div>
+                <h3 class="font-title text-title-md text-light-on-surface" data-design-text-token="title-md">Reset Sample Tasks</h3>
+                <p class="font-body text-body-sm text-light-on-surface-variant" data-design-text-token="body-sm">Restore the default realistic engineering task queue.</p>
+              </div>
+              <button type="button" onclick="resetSampleData()" class="px-3.5 py-2 rounded bg-light-primary text-light-on-primary hover:bg-light-primary-container font-label text-label-md shrink-0">
+                Restore Defaults
+              </button>
+            </div>
+
+            <div class="p-4 rounded-lg border border-light-outline-variant/60 bg-light-surface-container-low flex items-center justify-between gap-4">
+              <div>
+                <h3 class="font-title text-title-md text-light-on-surface" data-design-text-token="title-md">Clear Completed Tasks</h3>
+                <p class="font-body text-body-sm text-light-on-surface-variant" data-design-text-token="body-sm">Remove processed tasks from the history table.</p>
+              </div>
+              <button type="button" onclick="clearCompletedTasks()" class="px-3.5 py-2 rounded border border-light-outline-variant bg-light-surface-container-lowest text-light-error hover:bg-light-error-container font-label text-label-md shrink-0">
+                Clear Completed
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Add / Edit Task Modal -->
+  <dialog id="task-modal" data-component-id="modal-standard" data-component-type="modal" data-component-variant="standard" aria-labelledby="task-modal-title" class="w-full max-w-md rounded-xl bg-light-surface-container-lowest border border-light-outline-variant/60 p-6 shadow-xl">
+    <header class="flex items-start justify-between gap-4 mb-4">
+      <div>
+        <h2 id="task-modal-title" class="font-headline text-headline-md text-light-on-surface" data-design-text-token="headline-md">Add New Task</h2>
+        <p id="task-modal-desc" class="font-body text-body-sm text-light-on-surface-variant mt-1" data-design-text-token="body-sm">Appends the task to the end of the pending queue array.</p>
+      </div>
+      <button type="button" onclick="closeModal(&#39;task-modal&#39;)" aria-label="Close dialog" class="w-8 h-8 rounded flex items-center justify-center text-light-on-surface-variant hover:bg-light-surface-container-low">
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+    </header>
+
+    <form id="task-form" onsubmit="handleTaskFormSubmit(event)" class="space-y-4">
+      <input type="hidden" id="task-form-id" value>
+      <div>
+        <label for="task-name-input" class="block font-label text-label-md text-light-on-surface mb-1.5" data-design-text-token="label-md">Task Name</label>
+        <input id="task-name-input" type="text" placeholder="e.g., Patch OAuth token refresh race condition" class="w-full px-3 py-2 rounded bg-light-surface-container-lowest border border-light-outline-variant text-body-md text-light-on-surface placeholder:text-light-outline focus:outline-none focus:ring-2 focus:ring-light-primary">
+        <p id="task-name-error" class="hidden mt-1.5 font-body text-body-sm text-light-error" data-design-text-token="body-sm">Task name cannot be empty.</p>
+      </div>
+
+      <div>
+        <label for="task-priority-select" class="block font-label text-label-md text-light-on-surface mb-1.5" data-design-text-token="label-md">Priority Level</label>
+        <select id="task-priority-select" class="w-full px-3 py-2 rounded bg-light-surface-container-lowest border border-light-outline-variant text-body-md text-light-on-surface focus:outline-none focus:ring-2 focus:ring-light-primary">
+          <option value="5">High (5)</option>
+          <option value="3" selected>Medium (3)</option>
+          <option value="1">Low (1)</option>
+        </select>
+      </div>
+
+      <footer class="pt-2 flex items-center justify-end gap-3">
+        <button type="button" onclick="closeModal(&#39;task-modal&#39;)" class="px-4 py-2 rounded border border-light-outline-variant text-light-on-surface hover:bg-light-surface-container-low">
+          <span class="font-label text-label-lg" data-design-text-token="label-lg">Cancel</span>
+        </button>
+        <button type="submit" id="task-form-submit-btn" class="px-4 py-2 rounded bg-light-primary text-light-on-primary hover:bg-light-primary-container">
+          <span class="font-label text-label-lg" data-design-text-token="label-lg">Add Task</span>
+        </button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Update Priority Modal -->
+  <dialog id="priority-modal" data-component-id="modal-standard" data-component-type="modal" data-component-variant="standard" aria-labelledby="priority-modal-title" class="w-full max-w-md rounded-xl bg-light-surface-container-lowest border border-light-outline-variant/60 p-6 shadow-xl">
+    <header class="flex items-start justify-between gap-4 mb-4">
+      <div>
+        <h2 id="priority-modal-title" class="font-headline text-headline-md text-light-on-surface" data-design-text-token="headline-md">Update Task Priority</h2>
+        <p class="font-body text-body-sm text-light-on-surface-variant mt-1" data-design-text-token="body-sm">Updates priority in-place by Task ID without sorting the array.</p>
+      </div>
+      <button type="button" onclick="closeModal(&#39;priority-modal&#39;)" aria-label="Close dialog" class="w-8 h-8 rounded flex items-center justify-center text-light-on-surface-variant hover:bg-light-surface-container-low">
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+    </header>
+
+    <form onsubmit="handlePrioritySubmit(event)" class="space-y-4">
+      <input type="hidden" id="priority-task-id" value>
+      <div class="p-3.5 rounded-lg bg-light-surface-container-low border border-light-outline-variant/50">
+        <div class="flex items-center justify-between mb-1">
+          <span id="priority-modal-task-id" class="font-mono text-mono-sm text-light-on-surface-variant" data-design-text-token="mono-sm">TSK-101</span>
+          <span id="priority-modal-current-badge"></span>
+        </div>
+        <p id="priority-modal-task-name" class="font-title text-title-md text-light-on-surface" data-design-text-token="title-md">Task Name</p>
+      </div>
+
+      <div>
+        <label for="new-priority-select" class="block font-label text-label-md text-light-on-surface mb-1.5" data-design-text-token="label-md">New Priority</label>
+        <select id="new-priority-select" class="w-full px-3 py-2 rounded bg-light-surface-container-lowest border border-light-outline-variant text-body-md text-light-on-surface focus:outline-none focus:ring-2 focus:ring-light-primary">
+          <option value="5">High (5)</option>
+          <option value="3">Medium (3)</option>
+          <option value="1">Low (1)</option>
+        </select>
+      </div>
+
+      <footer class="pt-2 flex items-center justify-end gap-3">
+        <button type="button" onclick="closeModal(&#39;priority-modal&#39;)" class="px-4 py-2 rounded border border-light-outline-variant text-light-on-surface hover:bg-light-surface-container-low">
+          <span class="font-label text-label-lg" data-design-text-token="label-lg">Cancel</span>
+        </button>
+        <button type="submit" class="px-4 py-2 rounded bg-light-primary text-light-on-primary hover:bg-light-primary-container">
+          <span class="font-label text-label-lg" data-design-text-token="label-lg">Save Priority</span>
+        </button>
+      </footer>
+    </form>
+  </dialog>
+
+  <!-- Process Next Task Confirmation Modal -->
+  <dialog id="process-modal" role="alertdialog" data-component-id="modal-alert" data-component-type="modal" data-component-variant="alert" aria-labelledby="process-modal-title" class="w-full max-w-md rounded-xl bg-light-surface-container-lowest border border-light-outline-variant/60 p-6 shadow-xl">
+    <header class="flex items-start justify-between gap-4 mb-3">
+      <div class="flex items-center gap-2.5">
+        <span class="w-9 h-9 rounded-md bg-light-surface-container text-light-secondary flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px]">bolt</span>
+        </span>
+        <h2 id="process-modal-title" class="font-headline text-headline-md text-light-on-surface" data-design-text-token="headline-md">Process Next Task</h2>
+      </div>
+      <button type="button" onclick="closeModal(&#39;process-modal&#39;)" aria-label="Close dialog" class="w-8 h-8 rounded flex items-center justify-center text-light-on-surface-variant hover:bg-light-surface-container-low">
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+    </header>
+
+    <div class="space-y-3 mb-6">
+      <p class="font-body text-body-md text-light-on-surface-variant" data-design-text-token="body-md">
+        Linear search selected the highest-priority pending task (FIFO tie-break):
+      </p>
+      <div class="p-4 rounded-lg bg-light-surface-container-low border border-light-secondary/40">
+        <div class="flex items-center justify-between gap-2 mb-1.5">
+          <span id="process-task-id" class="font-mono text-mono-sm text-light-secondary" data-design-text-token="mono-sm">TSK-101</span>
+          <span id="process-task-badge"></span>
+        </div>
+        <p id="process-task-name" class="font-title text-title-md text-light-on-surface" data-design-text-token="title-md"></p>
+        <p id="process-task-index" class="font-mono text-mono-sm text-light-on-surface-variant mt-1" data-design-text-token="mono-sm"></p>
+      </div>
+    </div>
+
+    <footer class="flex items-center justify-end gap-3">
+      <button type="button" onclick="closeModal(&#39;process-modal&#39;)" class="px-4 py-2 rounded border border-light-outline-variant text-light-on-surface hover:bg-light-surface-container-low">
+        <span class="font-label text-label-lg" data-design-text-token="label-lg">Cancel</span>
+      </button>
+      <button type="button" onclick="confirmProcessNextTask()" class="px-4 py-2 rounded bg-light-secondary text-light-on-secondary hover:bg-light-secondary-container">
+        <span class="font-label text-label-lg" data-design-text-token="label-lg">Confirm &amp; Process</span>
+      </button>
+    </footer>
+  </dialog>
+
+  <!-- Toast Notification -->
+  <div id="toast-container" aria-live="polite" class="fixed bottom-5 right-5 z-50 hidden">
+    <div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-light-inverse-surface text-light-inverse-on-surface shadow-lg">
+      <span class="material-symbols-outlined text-[20px] text-success-container">check_circle</span>
+      <span id="toast-message" class="font-label text-label-md" data-design-text-token="label-md">Action completed</span>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // Array-Based Priority Queue Logic (faithful to C implementation)
+    // - Tasks are stored in an unsorted array in insertion order.
+    // - New tasks are appended at the end.
+    // - Finding the highest priority uses a linear search with strict '>'
+    //   so equal priorities resolve in FIFO order (earlier inserted first).
+    // - Processing removes the selected task from the pending queue (shifting
+    //   subsequent items) and marks it Completed in the task history array.
+    // =========================================================================
+
+    const STORAGE_KEY = 'priorityflow_tasks_v1';
+
+    const DEFAULT_TASKS = [
+      { id: 'TSK-101', name: 'Audit API gateway rate-limit thresholds', priority: 3, status: 'Pending' },
+      { id: 'TSK-102', name: 'Resolve production OAuth token timeout', priority: 5, status: 'Pending' },
+      { id: 'TSK-103', name: 'Update weekly sprint changelog notes', priority: 1, status: 'Pending' },
+      { id: 'TSK-104', name: 'Patch payment webhook retry backoff', priority: 5, status: 'Pending' },
+      { id: 'TSK-105', name: 'Refactor PostgreSQL connection pooler', priority: 3, status: 'Pending' },
+      { id: 'TSK-106', name: 'Migrate legacy static assets to CDN', priority: 1, status: 'Completed' },
+      { id: 'TSK-107', name: 'Rotate staging TLS certificates', priority: 5, status: 'Completed' }
+    ];
+
+    let tasks = [];
+    let currentView = 'dashboard';
+    let searchQuery = '';
+    let priorityFilter = 'all';
+    let statusFilter = 'all';
+    let sidebarCollapsed = false;
+    let notifications = [
+      { text: 'Queue initialized with 5 pending tasks', time: 'Just now' }
+    ];
+
+    function loadTasks() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            tasks = parsed;
+            return;
+          }
+        }
+      } catch (e) {
+        // Fallback when localStorage is unavailable in sandboxed iframe
+      }
+      tasks = DEFAULT_TASKS.map(t => ({ ...t }));
+    }
+
+    function saveTasks() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      } catch (e) {
+        // Ignore storage errors in opaque origin iframes
+      }
+    }
+
+    function generateTaskId() {
+      let maxNum = 100;
+      for (let i = 0; i < tasks.length; i++) {
+        const match = /^TSK-(\d+)$/.exec(tasks[i].id);
+        if (match) {
+          const n = parseInt(match[1], 10);
+          if (n > maxNum) maxNum = n;
+        }
+      }
+      return 'TSK-' + (maxNum + 1);
+    }
+
+    // Returns pending tasks in exact insertion order (never sorted)
+    function getPendingQueue() {
+      const pending = [];
+      for (let i = 0; i < tasks.length; i++) {
+        if (tasks[i].status === 'Pending') {
+          pending.push(tasks[i]);
+        }
+      }
+      return pending;
+    }
+
+    // Linear search for highest priority in pending queue (FIFO tie-break)
+    function findHighestPriorityPending(pendingQueue) {
+      if (pendingQueue.length === 0) return { task: null, index: -1 };
+      let bestIdx = 0;
+      let maxPriority = pendingQueue[0].priority;
+      for (let i = 1; i < pendingQueue.length; i++) {
+        if (pendingQueue[i].priority > maxPriority) {
+          maxPriority = pendingQueue[i].priority;
+          bestIdx = i;
+        }
+      }
+      return { task: pendingQueue[bestIdx], index: bestIdx };
+    }
+
+    function getPriorityBadgeHTML(priority) {
+      if (priority === 5) {
+        return '<span data-component-id="badge-error" data-component-type="badge" data-component-variant="error" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-light-error-container text-light-on-error-container font-label text-label-sm"><span class="w-1.5 h-1.5 rounded-full bg-light-error"></span>High (5)</span>';
+      }
+      if (priority === 3) {
+        return '<span data-component-id="badge-warning" data-component-type="badge" data-component-variant="warning" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-warning-container text-on-warning-container font-label text-label-sm"><span class="w-1.5 h-1.5 rounded-full bg-warning"></span>Medium (3)</span>';
+      }
+      return '<span data-component-id="badge-info" data-component-type="badge" data-component-variant="status" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-info-container text-on-info-container font-label text-label-sm"><span class="w-1.5 h-1.5 rounded-full bg-info"></span>Low (1)</span>';
+    }
+
+    function getStatusBadgeHTML(status) {
+      if (status === 'Completed') {
+        return '<span data-component-id="badge-success" data-component-type="badge" data-component-variant="success" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-success-container text-on-success-container font-label text-label-sm"><span class="w-1.5 h-1.5 rounded-full bg-success"></span>Completed</span>';
+      }
+      return '<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-light-surface-container text-light-primary font-label text-label-sm"><span class="w-1.5 h-1.5 rounded-full bg-light-primary"></span>Pending</span>';
+    }
+
+    function escapeHTML(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function renderStats() {
+      const total = tasks.length;
+      let pending = 0;
+      let completed = 0;
+      let highPending = 0;
+      for (let i = 0; i < tasks.length; i++) {
+        if (tasks[i].status === 'Pending') {
+          pending++;
+          if (tasks[i].priority === 5) highPending++;
+        } else {
+          completed++;
+        }
+      }
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-pending').textContent = pending;
+      document.getElementById('stat-completed').textContent = completed;
+      document.getElementById('stat-high').textContent = highPending;
+
+      const processBtn = document.getElementById('process-next-btn');
+      processBtn.disabled = pending === 0;
+    }
+
+    function renderQueueVisualization() {
+      const pendingQueue = getPendingQueue();
+      const { task: nextTask } = findHighestPriorityPending(pendingQueue);
+      const grid = document.getElementById('queue-cards-grid');
+      const countPill = document.getElementById('queue-count-pill');
+
+      countPill.textContent = pendingQueue.length + ' pending';
+
+      if (pendingQueue.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-8 text-center rounded-lg border border-dashed border-light-outline-variant bg-light-surface-container-low/50"><p class="font-title text-title-md text-light-on-surface">Queue is empty</p><p class="font-body text-body-sm text-light-on-surface-variant mt-1">Click Add New Task to append an item to the priority queue.</p></div>';
+        return;
+      }
+
+      grid.innerHTML = pendingQueue.map((task, idx) => {
+        const isNext = nextTask && task.id === nextTask.id;
+        const borderClass = isNext
+          ? 'border-light-secondary ring-1 ring-light-secondary/30 bg-light-surface-container-lowest'
+          : 'border-light-outline-variant/60 bg-light-surface-container-lowest';
+        const nextBadge = isNext
+          ? '<span class="px-2 py-0.5 rounded-full bg-light-secondary text-light-on-secondary font-label text-label-sm">NEXT IN QUEUE</span>'
+          : '<span class="font-mono text-mono-sm text-light-on-surface-variant">[' + idx + ']</span>';
+
+        return (
+          '<article data-component-id="card-interactive-2" data-component-type="card" data-component-variant="interactive" onclick="openPriorityModal(\'' + task.id + '\')" class="h-full rounded-lg border ' + borderClass + ' p-4 shadow-sm hover:shadow-md transition-shadow duration-state-change cursor-pointer flex flex-col justify-between gap-3">' +
+            '<div class="flex items-center justify-between gap-2">' +
+              '<span class="font-mono text-mono-sm text-light-on-surface-variant tabular-nums">' + escapeHTML(task.id) + '</span>' +
+              nextBadge +
+            '</div>' +
+            '<p class="font-body text-body-md font-medium text-light-on-surface leading-snug">' + escapeHTML(task.name) + '</p>' +
+            '<div class="flex items-center justify-between pt-2 border-t border-light-outline-variant/40">' +
+              getPriorityBadgeHTML(task.priority) +
+              '<span class="font-label text-label-sm text-light-primary">Update</span>' +
+            '</div>' +
+          '</article>'
+        );
+      }).join('');
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('task-table-body');
+      const summary = document.getElementById('table-summary');
+      const q = searchQuery.trim().toLowerCase();
+
+      const filtered = [];
+      for (let i = 0; i < tasks.length; i++) {
+        const t = tasks[i];
+        if (currentView === 'pending' && t.status !== 'Pending') continue;
+        if (currentView === 'completed' && t.status !== 'Completed') continue;
+        if (statusFilter !== 'all' && t.status !== statusFilter) continue;
+        if (priorityFilter !== 'all' && String(t.priority) !== priorityFilter) continue;
+        if (q && !t.id.toLowerCase().includes(q) && !t.name.toLowerCase().includes(q)) continue;
+        filtered.push(t);
+      }
+
+      summary.textContent = 'Showing ' + filtered.length + ' of ' + tasks.length + ' tasks';
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="px-5 py-10 text-center text-body-md text-light-on-surface-variant">No matching tasks found. Adjust your search or filters, or add a new task.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(task => {
+        return (
+          '<tr class="hover:bg-light-surface-container-low/60 transition-colors duration-state-change">' +
+            '<td class="px-5 py-3.5 whitespace-nowrap"><span class="font-mono text-mono-md text-light-on-surface-variant tabular-nums">' + escapeHTML(task.id) + '</span></td>' +
+            '<td class="px-5 py-3.5"><span class="font-body text-body-md font-medium text-light-on-surface">' + escapeHTML(task.name) + '</span></td>' +
+            '<td class="px-5 py-3.5 whitespace-nowrap">' + getPriorityBadgeHTML(task.priority) + '</td>' +
+            '<td class="px-5 py-3.5 whitespace-nowrap">' + getStatusBadgeHTML(task.status) + '</td>' +
+            '<td class="px-5 py-3.5 whitespace-nowrap text-right">' +
+              '<div class="inline-flex items-center justify-end gap-1">' +
+                '<button type="button" onclick="openEditModal(\'' + task.id + '\')" title="Edit Task" aria-label="Edit ' + escapeHTML(task.id) + '" class="inline-flex items-center justify-center w-8 h-8 rounded text-light-on-surface-variant hover:bg-light-surface-container hover:text-light-primary transition-colors duration-state-change">' +
+                  '<span class="material-symbols-outlined text-[18px]">edit</span>' +
+                '</button>' +
+                '<button type="button" onclick="openPriorityModal(\'' + task.id + '\')" title="Update Priority" aria-label="Update priority for ' + escapeHTML(task.id) + '" class="inline-flex items-center justify-center w-8 h-8 rounded text-light-on-surface-variant hover:bg-light-surface-container hover:text-light-secondary transition-colors duration-state-change">' +
+                  '<span class="material-symbols-outlined text-[18px]">tune</span>' +
+                '</button>' +
+                '<button type="button" onclick="deleteTask(\'' + task.id + '\')" title="Delete Task" aria-label="Delete ' + escapeHTML(task.id) + '" class="inline-flex items-center justify-center w-8 h-8 rounded text-light-on-surface-variant hover:bg-light-error-container hover:text-light-error transition-colors duration-state-change">' +
+                  '<span class="material-symbols-outlined text-[18px]">delete</span>' +
+                '</button>' +
+              '</div>' +
+            '</td>' +
+          '</tr>'
+        );
+      }).join('');
+    }
+
+    function renderAnalytics() {
+      const total = tasks.length;
+      let completed = 0;
+      let pending = 0;
+      let high = 0;
+      let med = 0;
+      let low = 0;
+
+      for (let i = 0; i < tasks.length; i++) {
+        if (tasks[i].status === 'Completed') completed++;
+        else pending++;
+        if (tasks[i].priority === 5) high++;
+        else if (tasks[i].priority === 3) med++;
+        else low++;
+      }
+
+      const compPct = total ? Math.round((completed / total) * 100) : 0;
+      const pendPct = total ? 100 - compPct : 0;
+      const circumference = 301.59;
+      const offset = circumference - (compPct / 100) * circumference;
+
+      document.getElementById('donut-completed-arc').setAttribute('stroke-dashoffset', offset.toFixed(2));
+      document.getElementById('analytics-completion-pct').textContent = compPct + '%';
+      document.getElementById('analytics-completed-count').textContent = completed + ' tasks';
+      document.getElementById('analytics-pending-count').textContent = pending + ' tasks';
+      document.getElementById('bar-completed').style.width = compPct + '%';
+      document.getElementById('bar-pending').style.width = pendPct + '%';
+      document.getElementById('analytics-total-tasks').textContent = total;
+
+      const highPct = total ? Math.round((high / total) * 100) : 0;
+      const medPct = total ? Math.round((med / total) * 100) : 0;
+      const lowPct = total ? Math.round((low / total) * 100) : 0;
+
+      document.getElementById('dist-high-label').textContent = high + ' (' + highPct + '%)';
+      document.getElementById('dist-med-label').textContent = med + ' (' + medPct + '%)';
+      document.getElementById('dist-low-label').textContent = low + ' (' + lowPct + '%)';
+      document.getElementById('dist-high-bar').style.width = highPct + '%';
+      document.getElementById('dist-med-bar').style.width = medPct + '%';
+      document.getElementById('dist-low-bar').style.width = lowPct + '%';
+    }
+
+    function renderNotifications() {
+      const list = document.getElementById('notif-list');
+      const dot = document.getElementById('notif-dot');
+      if (notifications.length === 0) {
+        dot.classList.add('hidden');
+        list.innerHTML = '<li class="font-body text-body-sm text-light-on-surface-variant py-2">No recent queue activity.</li>';
+        return;
+      }
+      dot.classList.remove('hidden');
+      list.innerHTML = notifications.slice(0, 6).map(n => (
+        '<li class="pb-2 border-b border-light-outline-variant/40 last:border-b-0">' +
+          '<p class="font-body text-body-sm text-light-on-surface">' + escapeHTML(n.text) + '</p>' +
+          '<span class="font-mono text-mono-sm text-light-on-surface-variant">' + escapeHTML(n.time) + '</span>' +
+        '</li>'
+      )).join('');
+    }
+
+    function renderAll() {
+      renderStats();
+      renderQueueVisualization();
+      renderTable();
+      renderAnalytics();
+      renderNotifications();
+    }
+
+    // View & Navigation Controls
+    function switchView(view) {
+      currentView = view;
+      const titles = {
+        dashboard: 'Dashboard',
+        all: 'All Tasks',
+        pending: 'Pending Tasks',
+        completed: 'Completed Tasks',
+        analytics: 'Analytics',
+        settings: 'Settings'
+      };
+      document.getElementById('page-heading').textContent = titles[view] || 'Dashboard';
+
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        const isActive = btn.getAttribute('data-nav') === view;
+        btn.classList.toggle('bg-light-surface-container', isActive);
+        btn.classList.toggle('text-light-primary', isActive);
+        btn.classList.toggle('text-light-on-surface-variant', !isActive);
+      });
+
+      const statsEl = document.getElementById('stats-section');
+      const queueEl = document.getElementById('queue-section');
+      const tableEl = document.getElementById('table-section');
+      const analyticsEl = document.getElementById('analytics-section');
+      const settingsEl = document.getElementById('settings-section');
+      const actionBar = document.getElementById('action-bar');
+
+      statsEl.classList.toggle('hidden', view === 'analytics' || view === 'settings');
+      queueEl.classList.toggle('hidden', view !== 'dashboard' && view !== 'pending');
+      tableEl.classList.toggle('hidden', view === 'analytics' || view === 'settings');
+      analyticsEl.classList.toggle('hidden', view !== 'dashboard' && view !== 'analytics');
+      settingsEl.classList.toggle('hidden', view !== 'settings');
+      actionBar.classList.toggle('hidden', view === 'settings');
+
+      toggleMobileSidebar(false);
+      renderTable();
+    }
+
+    function toggleSidebarCollapse() {
+      sidebarCollapsed = !sidebarCollapsed;
+      const sidebar = document.getElementById('sidebar');
+      const brandText = document.getElementById('brand-text');
+      const footer = document.getElementById('sidebar-footer');
+      const icon = document.getElementById('collapse-icon');
+      const labels = document.querySelectorAll('.nav-label');
+
+      if (sidebarCollapsed) {
+        sidebar.classList.replace('w-60', 'w-[72px]');
+        brandText.classList.add('hidden');
+        footer.classList.add('hidden');
+        labels.forEach(l => l.classList.add('hidden'));
+        icon.textContent = 'chevron_right';
+      } else {
+        sidebar.classList.replace('w-[72px]', 'w-60');
+        brandText.classList.remove('hidden');
+        footer.classList.remove('hidden');
+        labels.forEach(l => l.classList.remove('hidden'));
+        icon.textContent = 'menu_open';
+      }
+    }
+
+    function toggleMobileSidebar(open) {
+      const sidebar = document.getElementById('sidebar');
+      const backdrop = document.getElementById('mobile-sidebar-backdrop');
+      if (open) {
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+      } else {
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+      }
+    }
+
+    function handleSearchInput(val) {
+      searchQuery = val;
+      document.getElementById('global-search-input').value = val;
+      document.getElementById('table-search-input').value = val;
+      renderTable();
+    }
+
+    function handlePriorityFilter(val) {
+      priorityFilter = val;
+      renderTable();
+    }
+
+    function handleStatusFilter(val) {
+      statusFilter = val;
+      renderTable();
+    }
+
+    // Modals & Actions
+    function openAddModal() {
+      document.getElementById('task-form-id').value = '';
+      document.getElementById('task-modal-title').textContent = 'Add New Task';
+      document.getElementById('task-modal-desc').textContent = 'Appends the task to the end of the pending queue array.';
+      document.getElementById('task-form-submit-btn').querySelector('span').textContent = 'Add Task';
+      document.getElementById('task-name-input').value = '';
+      document.getElementById('task-priority-select').value = '3';
+      document.getElementById('task-name-error').classList.add('hidden');
+      document.getElementById('task-modal').showModal();
+    }
+
+    function openEditModal(taskId) {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+      document.getElementById('task-form-id').value = task.id;
+      document.getElementById('task-modal-title').textContent = 'Edit Task (' + task.id + ')';
+      document.getElementById('task-modal-desc').textContent = 'Modify task name or priority while preserving array position.';
+      document.getElementById('task-form-submit-btn').querySelector('span').textContent = 'Save Changes';
+      document.getElementById('task-name-input').value = task.name;
+      document.getElementById('task-priority-select').value = String(task.priority);
+      document.getElementById('task-name-error').classList.add('hidden');
+      document.getElementById('task-modal').showModal();
+    }
+
+    function handleTaskFormSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('task-form-id').value;
+      const nameInput = document.getElementById('task-name-input');
+      const errorEl = document.getElementById('task-name-error');
+      const name = nameInput.value.trim();
+      const priority = parseInt(document.getElementById('task-priority-select').value, 10);
+
+      if (!name) {
+        errorEl.classList.remove('hidden');
+        nameInput.focus();
+        return;
+      }
+      errorEl.classList.add('hidden');
+
+      if (id) {
+        for (let i = 0; i < tasks.length; i++) {
+          if (tasks[i].id === id) {
+            tasks[i].name = name;
+            tasks[i].priority = priority;
+            break;
+          }
+        }
+        addNotification('Updated task ' + id);
+        showToast('Task ' + id + ' updated.');
+      } else {
+        const newId = generateTaskId();
+        tasks.push({ id: newId, name: name, priority: priority, status: 'Pending' });
+        addNotification('Inserted ' + newId + ' at end of queue');
+        showToast('Added ' + newId + ' to queue.');
+      }
+
+      saveTasks();
+      renderAll();
+      closeModal('task-modal');
+    }
+
+    function openPriorityModal(taskId) {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+      document.getElementById('priority-task-id').value = task.id;
+      document.getElementById('priority-modal-task-id').textContent = task.id;
+      document.getElementById('priority-modal-task-name').textContent = task.name;
+      document.getElementById('priority-modal-current-badge').innerHTML = getPriorityBadgeHTML(task.priority);
+      document.getElementById('new-priority-select').value = String(task.priority);
+      document.getElementById('priority-modal').showModal();
+    }
+
+    function handlePrioritySubmit(e) {
+      e.preventDefault();
+      const taskId = document.getElementById('priority-task-id').value;
+      const newPriority = parseInt(document.getElementById('new-priority-select').value, 10);
+
+      for (let i = 0; i < tasks.length; i++) {
+        if (tasks[i].id === taskId) {
+          tasks[i].priority = newPriority;
+          break;
+        }
+      }
+
+      saveTasks();
+      renderAll();
+      closeModal('priority-modal');
+      addNotification('Updated priority for ' + taskId + ' to ' + newPriority);
+      showToast('Priority updated for ' + taskId + '.');
+    }
+
+    function openProcessModal() {
+      const pendingQueue = getPendingQueue();
+      const { task, index } = findHighestPriorityPending(pendingQueue);
+      if (!task) {
+        showToast('No pending tasks to process.');
+        return;
+      }
+      document.getElementById('process-task-id').textContent = task.id;
+      document.getElementById('process-task-name').textContent = task.name;
+      document.getElementById('process-task-badge').innerHTML = getPriorityBadgeHTML(task.priority);
+      document.getElementById('process-task-index').textContent = 'Pending array index [' + index + ']';
+      document.getElementById('process-modal').showModal();
+    }
+
+    function confirmProcessNextTask() {
+      const pendingQueue = getPendingQueue();
+      const { task } = findHighestPriorityPending(pendingQueue);
+      if (!task) {
+        closeModal('process-modal');
+        return;
+      }
+
+      for (let i = 0; i < tasks.length; i++) {
+        if (tasks[i].id === task.id) {
+          tasks[i].status = 'Completed';
+          break;
+        }
+      }
+
+      saveTasks();
+      renderAll();
+      closeModal('process-modal');
+      addNotification('Processed ' + task.id + ' (' + task.name + ')');
+      showToast('Processed ' + task.id + ' and removed from pending queue.');
+    }
+
+    function deleteTask(taskId) {
+      const idx = tasks.findIndex(t => t.id === taskId);
+      if (idx === -1) return;
+      tasks.splice(idx, 1);
+      saveTasks();
+      renderAll();
+      addNotification('Deleted task ' + taskId);
+      showToast('Deleted ' + taskId + '.');
+    }
+
+    function resetSampleData() {
+      tasks = DEFAULT_TASKS.map(t => ({ ...t }));
+      saveTasks();
+      renderAll();
+      addNotification('Restored default sample task queue');
+      showToast('Default sample tasks restored.');
+    }
+
+    function clearCompletedTasks() {
+      tasks = tasks.filter(t => t.status === 'Pending');
+      saveTasks();
+      renderAll();
+      addNotification('Cleared completed tasks');
+      showToast('Completed tasks cleared.');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).close();
+    }
+
+    function toggleNotifications() {
+      document.getElementById('notif-popover').classList.toggle('hidden');
+    }
+
+    function clearNotifications() {
+      notifications = [];
+      renderNotifications();
+    }
+
+    function addNotification(text) {
+      const now = new Date();
+      const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      notifications.unshift({ text, time });
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const container = document.getElementById('toast-container');
+      document.getElementById('toast-message').textContent = msg;
+      container.classList.remove('hidden');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        container.classList.add('hidden');
+      }, 3000);
+    }
+
+    // Initialize on load
+    loadTasks();
+    renderAll();
+  </script>
+
+
+</body></html>

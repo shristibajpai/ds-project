@@ -1,0 +1,8 @@
+8 5 2
+P	1	5	Audit API gateway rate-limit thresholds
+P	2	10	Resolve production OAuth token timeout
+P	3	2	Update weekly sprint changelog notes
+P	4	9	Patch payment webhook retry backoff
+P	5	6	Refactor PostgreSQL connection pooler
+C	6	1	Migrate legacy static assets to CDN
+C	7	8	Rotate staging TLS certificates
