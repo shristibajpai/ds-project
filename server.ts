@@ -6,8 +6,13 @@ import express, { Request, Response } from 'express';
 
 const ROOT_DIR = process.cwd();
 const C_SOURCE = path.resolve(ROOT_DIR, 'backend/task_manager.c');
-const C_BINARY = path.resolve(ROOT_DIR, 'backend/task_manager');
+const C_BINARY = path.resolve(
+  ROOT_DIR,
+  process.platform === 'win32' ? 'backend/task_manager.exe' : 'backend/task_manager'
+);
 const PORT = Number(process.env.PORT) || 3000;
+const STATE_FILE = path.resolve(ROOT_DIR, 'backend/tasks_state.dat');
+const MAX_CAPACITY = 100;
 
 interface CTask {
   id: number;
@@ -30,7 +35,247 @@ interface CResponse {
   tasks: CTask[];
 }
 
+class JavaScriptFallbackBackend {
+  private pending: CTask[] = [];
+  private completed: CTask[] = [];
+  private nextId = 1;
+
+  public constructor() {
+    this.loadState();
+  }
+
+  private sanitizeName(raw: string): string {
+    return raw
+      .replace(/[\r\n\t]+/g, ' ')
+      .replace(/[^\x20-\x7e]/g, '')
+      .trim()
+      .slice(0, 49);
+  }
+
+  private resetDefaults(): void {
+    const defaults: Array<{ name: string; priority: number; status: CTask['status'] }> = [
+      { name: 'Audit API gateway rate-limit thresholds', priority: 5, status: 'Pending' },
+      { name: 'Resolve production OAuth token timeout', priority: 10, status: 'Pending' },
+      { name: 'Update weekly sprint changelog notes', priority: 2, status: 'Pending' },
+      { name: 'Patch payment webhook retry backoff', priority: 9, status: 'Pending' },
+      { name: 'Refactor PostgreSQL connection pooler', priority: 6, status: 'Pending' },
+      { name: 'Migrate legacy static assets to CDN', priority: 1, status: 'Completed' },
+      { name: 'Rotate staging TLS certificates', priority: 8, status: 'Completed' },
+    ];
+
+    this.pending = [];
+    this.completed = [];
+    this.nextId = 1;
+    for (const item of defaults) {
+      const task: CTask = {
+        id: this.nextId++,
+        name: item.name,
+        priority: item.priority,
+        status: item.status,
+      };
+      if (task.status === 'Pending') this.pending.push(task);
+      else this.completed.push(task);
+    }
+    this.saveState();
+  }
+
+  private loadState(): void {
+    if (!fs.existsSync(STATE_FILE)) {
+      this.resetDefaults();
+      return;
+    }
+
+    try {
+      const lines = fs.readFileSync(STATE_FILE, 'utf8').split(/\r?\n/).filter(Boolean);
+      const header = lines.shift()?.trim().split(/\s+/).map(Number);
+      if (!header || header.length !== 3) {
+        this.resetDefaults();
+        return;
+      }
+
+      this.nextId = header[0] > 0 ? header[0] : 1;
+      this.pending = [];
+      this.completed = [];
+
+      for (const line of lines) {
+        const parts = line.split('\t');
+        if (parts.length < 4) continue;
+        const id = Number(parts[1]);
+        const priority = Number(parts[2]);
+        const name = this.sanitizeName(parts.slice(3).join('\t'));
+        if (!Number.isInteger(id) || !Number.isInteger(priority) || !name) continue;
+        const task: CTask = {
+          id,
+          name,
+          priority,
+          status: parts[0] === 'C' ? 'Completed' : 'Pending',
+        };
+        if (task.status === 'Pending') this.pending.push(task);
+        else this.completed.push(task);
+        if (id >= this.nextId) this.nextId = id + 1;
+      }
+    } catch {
+      this.resetDefaults();
+    }
+  }
+
+  private saveState(): void {
+    const lines = [
+      `${this.nextId} ${this.pending.length} ${this.completed.length}`,
+      ...this.pending.map((task) => `P\t${task.id}\t${task.priority}\t${task.name}`),
+      ...this.completed.map((task) => `C\t${task.id}\t${task.priority}\t${task.name}`),
+    ];
+    fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
+    fs.writeFileSync(STATE_FILE, `${lines.join('\n')}\n`, 'utf8');
+  }
+
+  private findHighestIndex(): number {
+    if (this.pending.length === 0) return -1;
+    let highest = 0;
+    for (let i = 1; i < this.pending.length; i++) {
+      if (this.pending[i].priority > this.pending[highest].priority) highest = i;
+    }
+    return highest;
+  }
+
+  private response(
+    ok: boolean,
+    message: string,
+    affectedTask?: CTask,
+    affectedIndex = -1,
+    affectedStatus?: CTask['status']
+  ): CResponse {
+    const nextPendingIndex = this.findHighestIndex();
+    const tasks: CTask[] = [
+      ...this.pending,
+      ...this.completed,
+    ];
+
+    return {
+      ok,
+      message,
+      maxCapacity: MAX_CAPACITY,
+      size: this.pending.length,
+      completedSize: this.completed.length,
+      nextId: this.nextId,
+      nextPendingIndex,
+      nextTask: nextPendingIndex >= 0 ? this.pending[nextPendingIndex] : null,
+      ...(affectedTask
+        ? {
+            affectedTask: affectedStatus
+              ? { ...affectedTask, status: affectedStatus }
+              : affectedTask,
+            affectedIndex,
+          }
+        : {}),
+      tasks,
+    };
+  }
+
+  public sendCommand(command: string): CResponse {
+    if (command === 'LIST') return this.response(true, 'OK');
+
+    if (command === 'RESET') {
+      this.resetDefaults();
+      return this.response(true, 'Default tasks restored');
+    }
+
+    if (command === 'CLEAR_COMPLETED') {
+      this.completed = [];
+      this.saveState();
+      return this.response(true, 'Completed tasks cleared');
+    }
+
+    if (command === 'PROCESS') {
+      if (this.pending.length === 0) {
+        return this.response(false, 'Priority Queue is empty!');
+      }
+      const index = this.findHighestIndex();
+      const processed = this.pending[index];
+      this.pending.splice(index, 1);
+      if (this.completed.length < MAX_CAPACITY) this.completed.push(processed);
+      this.saveState();
+      return this.response(true, 'Task processed successfully!', processed, index, 'Completed');
+    }
+
+    if (command.startsWith('INSERT ')) {
+      if (this.pending.length >= MAX_CAPACITY) {
+        return this.response(false, 'Priority Queue is full!');
+      }
+      const separator = command.indexOf('|', 7);
+      if (separator < 0) return this.response(false, 'Invalid INSERT payload');
+      const priority = Number(command.slice(7, separator));
+      const name = this.sanitizeName(command.slice(separator + 1));
+      if (!name) return this.response(false, 'Task name cannot be empty.');
+      if (!Number.isInteger(priority) || priority < 1 || priority > 10) {
+        return this.response(false, 'Priority must be between 1 and 10.');
+      }
+      const task: CTask = { id: this.nextId++, name, priority, status: 'Pending' };
+      this.pending.push(task);
+      this.saveState();
+      return this.response(true, 'Task inserted successfully!', task, this.pending.length - 1);
+    }
+
+    if (command.startsWith('UPDATE ')) {
+      const parts = command.split(/\s+/);
+      const id = Number(parts[1]);
+      const priority = Number(parts[2]);
+      if (!Number.isInteger(priority) || priority < 1 || priority > 10) {
+        return this.response(false, 'Priority must be between 1 and 10.');
+      }
+      const task = [...this.pending, ...this.completed].find((item) => item.id === id);
+      if (!task) return this.response(false, 'Task not found!');
+      task.priority = priority;
+      this.saveState();
+      return this.response(true, 'Task priority updated successfully!', task, -1, task.status);
+    }
+
+    if (command.startsWith('EDIT ')) {
+      const separator = command.indexOf('|');
+      if (separator < 0) return this.response(false, 'Invalid EDIT payload');
+      const header = command.slice(5, separator).trim().split(/\s+/);
+      const id = Number(header[0]);
+      const priority = Number(header[1]);
+      const name = this.sanitizeName(command.slice(separator + 1));
+      if (!name) return this.response(false, 'Task name cannot be empty.');
+      if (!Number.isInteger(priority) || priority < 1 || priority > 10) {
+        return this.response(false, 'Priority must be between 1 and 10.');
+      }
+      const task = [...this.pending, ...this.completed].find((item) => item.id === id);
+      if (!task) return this.response(false, 'Task not found!');
+      task.name = name;
+      task.priority = priority;
+      this.saveState();
+      return this.response(true, 'Task updated successfully!', task, -1, task.status);
+    }
+
+    if (command.startsWith('DELETE ')) {
+      const id = Number(command.slice(7));
+      let index = this.pending.findIndex((item) => item.id === id);
+      if (index >= 0) {
+        const deleted = this.pending[index];
+        this.pending.splice(index, 1);
+        this.saveState();
+        return this.response(true, 'Task deleted successfully!', deleted, index);
+      }
+      index = this.completed.findIndex((item) => item.id === id);
+      if (index >= 0) {
+        const deleted = this.completed[index];
+        this.completed.splice(index, 1);
+        this.saveState();
+        return this.response(true, 'Task deleted successfully!', deleted, index, 'Completed');
+      }
+      return this.response(false, 'Task not found!');
+    }
+
+    return this.response(false, 'Unknown command');
+  }
+}
+
 function ensureCompiledCBinary(): void {
+  if (process.platform === 'win32') {
+    return;
+  }
   let needsCompile = !fs.existsSync(C_BINARY);
   if (!needsCompile && fs.existsSync(C_SOURCE)) {
     const srcStat = fs.statSync(C_SOURCE);
@@ -51,6 +296,8 @@ function ensureCompiledCBinary(): void {
 class CBackendBridge {
   private proc: ChildProcessWithoutNullStreams | null = null;
   private rl: readline.Interface | null = null;
+  private fallbackMode = process.platform === 'win32';
+  private fallback = new JavaScriptFallbackBackend();
   private pendingResolvers: Array<{
     resolve: (val: CResponse) => void;
     reject: (err: Error) => void;
@@ -108,6 +355,9 @@ class CBackendBridge {
 
   public sendCommand(command: string): Promise<CResponse> {
     const run = (): Promise<CResponse> => {
+      if (this.fallbackMode) {
+        return Promise.resolve(this.fallback.sendCommand(command));
+      }
       this.startProcess();
       const proc = this.proc;
       if (!proc) {
