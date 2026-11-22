@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PulseQueue — Priority Task Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #090b10;
+      --bg-elevated: #10141d;
+      --bg-card: rgba(18, 23, 34, 0.85);
+      --bg-subtle: rgba(255, 255, 255, 0.035);
+      --bg-hover: rgba(255, 255, 255, 0.06);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --text: #f3f5f9;
+      --text-muted: #9aa4b8;
+      --text-dim: #667085;
+      --accent: #6366f1;
+      --accent-2: #8b5cf6;
+      --accent-glow: rgba(99, 102, 241, 0.25);
+
+      --crit: #fb7185;
+      --crit-bg: rgba(251, 113, 133, 0.14);
+      --high: #fbbf24;
+      --high-bg: rgba(251, 191, 36, 0.14);
+      --med: #60a5fa;
+      --med-bg: rgba(96, 165, 250, 0.14);
+      --low: #34d399;
+      --low-bg: rgba(52, 211, 153, 0.14);
+
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+    }
+
+    html[data-theme="light"] {
+      --bg: #f4f6fb;
+      --bg-elevated: #ffffff;
+      --bg-card: rgba(255, 255, 255, 0.92);
+      --bg-subtle: rgba(15, 23, 42, 0.035);
+      --bg-hover: rgba(15, 23, 42, 0.06);
+      --border: rgba(15, 23, 42, 0.09);
+      --border-strong: rgba(15, 23, 42, 0.18);
+      --text: #0f172a;
+      --text-muted: #475569;
+      --text-dim: #94a3b8;
+      --accent: #4f46e5;
+      --accent-2: #7c3aed;
+      --accent-glow: rgba(79, 70, 229, 0.18);
+
+      --crit: #e11d48;
+      --crit-bg: rgba(225, 29, 72, 0.1);
+      --high: #d97706;
+      --high-bg: rgba(217, 119, 6, 0.1);
+      --med: #2563eb;
+      --med-bg: rgba(37, 99, 235, 0.1);
+      --low: #059669;
+      --low-bg: rgba(5, 150, 105, 0.1);
+
+      --shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      background-image:
+        radial-gradient(900px 500px at 10% -10%, rgba(99, 102, 241, 0.16), transparent 60%),
+        radial-gradient(800px 450px at 90% 0%, rgba(139, 92, 246, 0.12), transparent 55%);
+    }
+
+    .app { max-width: 1320px; margin: 0 auto; padding: 24px 20px 64px; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .brand { display: flex; align-items: center; gap: 14px; }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 700;
+      box-shadow: 0 8px 24px var(--accent-glow);
+      flex-shrink: 0;
+    }
+
+    .brand h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand p { font-size: 0.82rem; color: var(--text-muted); }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--low-bg);
+      color: var(--low);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+    }
+
+    .status-pill.offline {
+      background: var(--crit-bg);
+      color: var(--crit);
+      border-color: rgba(251, 113, 133, 0.25);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.82); }
+    }
+
+    .top-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+    button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.86rem;
+      font-weight: 600;
+      transition: transform 0.14s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn:active:not(:disabled) { transform: translateY(1px) scale(0.99); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-ghost {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .btn-ghost:hover:not(:disabled) {
+      color: var(--text);
+      border-color: var(--border-strong);
+      background: var(--bg-hover);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+      box-shadow: 0 8px 24px var(--accent-glow);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      box-shadow: 0 10px 28px rgba(99, 102, 241, 0.38);
+      filter: brightness(1.06);
+    }
+
+    .btn-sm { padding: 6px 11px; font-size: 0.78rem; border-radius: 8px; }
+
+    .btn-icon {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+      display: grid;
+      place-items: center;
+    }
+
+    .btn-icon:hover:not(:disabled) {
+      color: var(--text);
+      border-color: var(--border-strong);
+      background: var(--bg-hover);
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      color: var(--crit);
+      border-color: rgba(251, 113, 133, 0.4);
+      background: var(--crit-bg);
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.55fr 1fr;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .spotlight-card {
+      padding: 22px 24px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+      border-color: rgba(99, 102, 241, 0.28);
+    }
+
+    .spotlight-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(500px 200px at 90% 10%, rgba(99, 102, 241, 0.14), transparent 70%);
+      pointer-events: none;
+    }
+
+    .spotlight-eyebrow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .spotlight-main {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .spotlight-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-top: 6px;
+    }
+
+    .spotlight-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+    .stat-card {
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .stat-card.wide { grid-column: span 2; }
+
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stat-value {
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      font-family: var(--font-mono);
+    }
+
+    .progress-track {
+      height: 7px;
+      border-radius: 999px;
+      background: var(--bg-subtle);
+      overflow: hidden;
+      display: flex;
+      gap: 2px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .dist-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: var(--bg-subtle);
+      overflow: hidden;
+      display: flex;
+    }
+
+    .dist-seg { height: 100%; transition: width 0.35s ease; }
+
+    .dist-legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    .legend-item { display: inline-flex; align-items: center; gap: 5px; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: sticky;
+      top: 20px;
+    }
+
+    .panel { padding: 20px; }
+    .panel-title { font-size: 0.98rem; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 4px; }
+    .panel-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
+    .field { margin-bottom: 16px; }
+
+    .field-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 7px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .char-count { font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-dim); }
+
+    .input {
+      width: 100%;
+      padding: 11px 13px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .priority-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+
+    .prio-pick {
+      padding: 8px 0;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-subtle);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.14s ease;
+    }
+
+    .prio-pick:hover { border-color: var(--border-strong); color: var(--text); }
+    .prio-pick.active { color: #fff; border-color: transparent; transform: translateY(-1px); }
+    .prio-pick.active[data-tier="crit"] { background: var(--crit); }
+    .prio-pick.active[data-tier="high"] { background: var(--high); color: #111827; }
+    .prio-pick.active[data-tier="med"]  { background: var(--med); }
+    .prio-pick.active[data-tier="low"]  { background: var(--low); color: #052e16; }
+
+    .array-strip { display: flex; flex-wrap: wrap; gap: 7px; }
+
+    .slot-chip {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 5px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-subtle);
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s ease;
+    }
+
+    .slot-chip.next-slot {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .board { padding: 20px; min-height: 520px; display: flex; flex-direction: column; gap: 16px; }
+
+    .board-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tabs {
+      display: inline-flex;
+      background: var(--bg-subtle);
+      padding: 4px;
+      border-radius: 11px;
+      border: 1px solid var(--border);
+    }
+
+    .tab {
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.15s ease;
+    }
+
+    .tab.active {
+      background: var(--bg-elevated);
+      color: var(--text);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .tab-count {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: var(--bg-subtle);
+    }
+
+    .filter-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .search-wrap { position: relative; flex: 1; min-width: 200px; }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    .search-input { padding-left: 34px; padding-top: 9px; padding-bottom: 9px; font-size: 0.84rem; }
+
+    .select {
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+
+    .task-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .task-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: 13px;
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      animation: fadeSlide 0.2s ease;
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .task-item:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+
+    .task-item.is-next {
+      border-color: rgba(99, 102, 241, 0.45);
+      box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2), 0 10px 26px rgba(99, 102, 241, 0.08);
+    }
+
+    .task-item.is-completed { opacity: 0.72; }
+    .task-item.is-completed .task-name { text-decoration: line-through; color: var(--text-muted); }
+
+    .prio-stepper {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-subtle);
+    }
+
+    .step-btn {
+      width: 22px;
+      height: 24px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: grid;
+      place-items: center;
+    }
+
+    .step-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--text); }
+
+    .prio-badge {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 7px;
+      min-width: 44px;
+      text-align: center;
+      display: inline-block;
+    }
+
+    .tier-crit { background: var(--crit-bg); color: var(--crit); }
+    .tier-high { background: var(--high-bg); color: var(--high); }
+    .tier-med  { background: var(--med-bg); color: var(--med); }
+    .tier-low  { background: var(--low-bg); color: var(--low); }
+
+    .task-body { min-width: 0; }
+    .task-name { font-size: 0.95rem; font-weight: 600; color: var(--text); word-break: break-word; }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    .tag {
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .tag-next { background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(99, 102, 241, 0.35); }
+    .tag-done { background: var(--low-bg); color: var(--low); }
+    .task-actions { display: flex; align-items: center; gap: 6px; }
+
+    .empty-state {
+      padding: 56px 20px;
+      text-align: center;
+      color: var(--text-muted);
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+    }
+
+    .empty-state h3 { font-size: 1rem; color: var(--text); margin-bottom: 6px; }
+    .empty-state p { font-size: 0.85rem; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 7, 12, 0.72);
+      backdrop-filter: blur(6px);
+      display: none;
+      place-items: center;
+      padding: 20px;
+      z-index: 50;
+    }
+
+    .modal-backdrop.open { display: grid; }
+    .modal { width: 100%; max-width: 440px; padding: 24px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+    .toast-stack {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 60;
+      max-width: 340px;
+    }
+
+    .toast {
+      padding: 12px 16px;
+      border-radius: 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-strong);
+      box-shadow: var(--shadow);
+      font-size: 0.84rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toastIn 0.2s ease;
+    }
+
+    .toast.ok { border-left: 4px solid var(--low); }
+    .toast.err { border-left: 4px solid var(--crit); }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 980px) {
+      .hero-grid, .workspace { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+    }
+
+    @media (max-width: 560px) {
+      .task-item { grid-template-columns: 1fr; gap: 10px; }
+      .task-actions { justify-content: flex-end; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">PQ</div>
+        <div>
+          <h1>
+            PulseQueue
+            <span id="connPill" class="status-pill">
+              <span class="status-dot"></span>
+              <span id="connText">Connecting...</span>
+            </span>
+          </h1>
+          <p>Priority Based Task Engine &middot; C Backend Control Plane</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button id="themeBtn" class="btn btn-ghost btn-sm" type="button">Toggle Theme</button>
+        <button id="resetBtn" class="btn btn-ghost btn-sm" type="button">Reset Defaults</button>
+        <button id="topProcessBtn" class="btn btn-primary" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Process Highest
+        </button>
+      </div>
+    </header>
+
+    <section class="hero-grid">
+      <div class="card spotlight-card">
+        <div class="spotlight-eyebrow">
+          <span>Next Up To Process &middot; find_highest_index()</span>
+          <span id="nextSlotTag" style="font-family: var(--font-mono);">pq[-]</span>
+        </div>
+
+        <div id="spotlightBody" class="spotlight-main">
+          <div>
+            <div style="color: var(--text-muted); font-size: 0.9rem;">Loading queue state...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="card stat-card">
+          <div class="stat-label">
+            <span>Pending Queue</span>
+            <span id="capacityLabel" style="font-family: var(--font-mono);">0 / 100</span>
+          </div>
+          <div id="pendingCount" class="stat-value">0</div>
+          <div class="progress-track">
+            <div id="capacityBar" class="progress-fill" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div class="card stat-card">
+          <div class="stat-label">
+            <span>Completed</span>
+            <span id="completionRate" style="font-family: var(--font-mono);">0%</span>
+          </div>
+          <div id="completedCount" class="stat-value">0</div>
+          <div class="progress-track">
+            <div id="completionBar" class="progress-fill" style="width: 0%; background: var(--low);"></div>
+          </div>
+        </div>
+
+        <div class="card stat-card wide">
+          <div class="stat-label">
+            <span>Pending Priority Distribution</span>
+            <span id="nextIdLabel" style="font-family: var(--font-mono);">next_id: #1</span>
+          </div>
+          <div id="distBar" class="dist-bar"></div>
+          <div class="dist-legend">
+            <span class="legend-item"><span class="legend-dot" style="background: var(--crit);"></span>Critical (9–10)</span>
+            <span class="legend-item"><span class="legend-dot" style="background: var(--high);"></span>High (7–8)</span>
+            <span class="legend-item"><span class="legend-dot" style="background: var(--med);"></span>Medium (4–6)</span>
+            <span class="legend-item"><span class="legend-dot" style="background: var(--low);"></span>Low (1–3)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <main class="workspace">
+      <aside class="sidebar">
+        <section class="card panel">
+          <h2 class="panel-title">Enqueue New Task</h2>
+          <p class="panel-subtitle">Inserts directly into C backend <code>pq[size]</code> array.</p>
+
+          <form id="insertForm">
+            <div class="field">
+              <div class="field-header">
+                <label for="taskNameInput">Task Name</label>
+                <span id="nameCounter" class="char-count">0 / 49</span>
+              </div>
+              <input id="taskNameInput" class="input" type="text" maxlength="49" placeholder="e.g., Drain Canary Redis Shard" required autocomplete="off" />
+            </div>
+
+            <div class="field">
+              <div class="field-header">
+                <span>Priority Level</span>
+                <span id="selectedPrioLabel" class="prio-badge tier-high">P8 &middot; High</span>
+              </div>
+              <div id="insertPrioGrid" class="priority-grid"></div>
+            </div>
+
+            <button id="insertSubmitBtn" class="btn btn-primary" style="width: 100%;" type="submit">
+              + Insert Into Queue
+            </button>
+          </form>
+        </section>
+
+        <section class="card panel">
+          <h2 class="panel-title">C Memory Array <code>pq[]</code></h2>
+          <p class="panel-subtitle">Live insertion-order slots scanned by <code>find_highest_index()</code>.</p>
+          <div id="arrayInspector" class="array-strip"></div>
+        </section>
+      </aside>
+
+      <section class="card board">
+        <div class="board-controls">
+          <div class="tabs" role="tablist">
+            <button class="tab active" data-tab="Pending" type="button">Pending <span id="tabPendingCount" class="tab-count">0</span></button>
+            <button class="tab" data-tab="Completed" type="button">Completed <span id="tabCompletedCount" class="tab-count">0</span></button>
+            <button class="tab" data-tab="All" type="button">All <span id="tabAllCount" class="tab-count">0</span></button>
+          </div>
+
+          <button id="clearCompletedBtn" class="btn btn-ghost btn-sm" type="button" style="display: none;">Clear Completed</button>
+        </div>
+
+        <div class="filter-row">
+          <div class="search-wrap">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input id="searchInput" class="input search-input" type="search" placeholder="Search by task name or #ID..." />
+          </div>
+
+          <select id="tierFilter" class="select" aria-label="Filter by priority tier">
+            <option value="all">All Priorities</option>
+            <option value="crit">Critical (9–10)</option>
+            <option value="high">High (7–8)</option>
+            <option value="med">Medium (4–6)</option>
+            <option value="low">Low (1–3)</option>
+          </select>
+
+          <select id="sortSelect" class="select" aria-label="Sort tasks">
+            <option value="priority">Sort: Highest Priority</option>
+            <option value="array">Sort: Queue Index (pq[])</option>
+            <option value="id">Sort: Task ID</option>
+          </select>
+        </div>
+
+        <div id="taskList" class="task-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="editModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+    <div class="card modal">
+      <div class="modal-header">
+        <h2 id="editModalTitle" class="panel-title">Edit Task</h2>
+        <button id="closeModalBtn" class="btn-icon" type="button" aria-label="Close modal">&times;</button>
+      </div>
+
+      <form id="editForm">
+        <input id="editTaskId" type="hidden" />
+        <div class="field">
+          <div class="field-header">
+            <label for="editNameInput">Task Name</label>
+            <span id="editNameCounter" class="char-count">0 / 49</span>
+          </div>
+          <input id="editNameInput" class="input" type="text" maxlength="49" required autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <div class="field-header">
+            <span>Priority Level</span>
+            <span id="editPrioLabel" class="prio-badge tier-high">P5</span>
+          </div>
+          <div id="editPrioGrid" class="priority-grid"></div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="cancelEditBtn" class="btn btn-ghost" type="button">Cancel</button>
+          <button class="btn btn-primary" type="submit">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toastStack" class="toast-stack" aria-live="polite"></div>
+
+  <script>
+    const state = {
+      data: null,
+      activeTab: "Pending",
+      search: "",
+      tier: "all",
+      sort: "priority",
+      insertPriority: 8,
+      editPriority: 5,
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function getTier(p) {
+      if (p >= 9) return { key: "crit", label: "Critical", cls: "tier-crit" };
+      if (p >= 7) return { key: "high", label: "High", cls: "tier-high" };
+      if (p >= 4) return { key: "med",  label: "Medium", cls: "tier-med" };
+      return { key: "low", label: "Low", cls: "tier-low" };
+    }
+
+    function showToast(message, isOk = true) {
+      const stack = $("toastStack");
+      const toast = document.createElement("div");
+      toast.className = `toast ${isOk ? "ok" : "err"}`;
+      toast.textContent = message;
+      stack.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(8px)";
+        toast.style.transition = "all 0.2s ease";
+        setTimeout(() => toast.remove(), 220);
+      }, 3000);
+    }
+
+    function setConnectionStatus(online, label) {
+      $("connPill").classList.toggle("offline", !online);
+      $("connText").textContent = label;
+    }
+
+    async function apiRequest(url, options = {}) {
+      try {
+        const res = await fetch(url, {
+          headers: { "Content-Type": "application/json" },
+          ...options,
+        });
+        const json = await res.json();
+        setConnectionStatus(true, "C Engine Live");
+        if (json && typeof json.size === "number") {
+          state.data = json;
+          render();
+        }
+        return json;
+      } catch (err) {
+        setConnectionStatus(false, "Backend Unreachable");
+        showToast("Cannot reach server.py / C backend.", false);
+        return null;
+      }
+    }
+
+    function renderPriorityPicker(container, selected, onPick) {
+      container.innerHTML = "";
+      for (let p = 1; p <= 10; p++) {
+        const tier = getTier(p);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `prio-pick ${p === selected ? "active" : ""}`;
+        btn.dataset.tier = tier.key;
+        btn.textContent = `P${p}`;
+        btn.title = `${tier.label} (Priority ${p})`;
+        btn.addEventListener("click", () => onPick(p));
+        container.appendChild(btn);
+      }
+    }
+
+    function updateInsertPrioUI() {
+      const tier = getTier(state.insertPriority);
+      const badge = $("selectedPrioLabel");
+      badge.className = `prio-badge ${tier.cls}`;
+      badge.textContent = `P${state.insertPriority} · ${tier.label}`;
+      renderPriorityPicker($("insertPrioGrid"), state.insertPriority, (p) => {
+        state.insertPriority = p;
+        updateInsertPrioUI();
+      });
+    }
+
+    function updateEditPrioUI() {
+      const tier = getTier(state.editPriority);
+      const badge = $("editPrioLabel");
+      badge.className = `prio-badge ${tier.cls}`;
+      badge.textContent = `P${state.editPriority} · ${tier.label}`;
+      renderPriorityPicker($("editPrioGrid"), state.editPriority, (p) => {
+        state.editPriority = p;
+        updateEditPrioUI();
+      });
+    }
+
+    function renderSpotlight(d) {
+      const next = d.nextTask;
+      const body = $("spotlightBody");
+      const slotTag = $("nextSlotTag");
+      $("topProcessBtn").disabled = !next;
+      body.innerHTML = "";
+
+      if (!next) {
+        slotTag.textContent = "pq[] empty";
+        const empty = document.createElement("div");
+        empty.innerHTML = `
+          <div class="spotlight-title">Queue is clear</div>
+          <div class="spotlight-meta">All pending tasks have been processed. Insert a new task to continue.</div>
+        `;
+        body.appendChild(empty);
+        return;
+      }
+
+      slotTag.textContent = `pq[${d.nextPendingIndex}]`;
+      const tier = getTier(next.priority);
+
+      const left = document.createElement("div");
+      const badge = document.createElement("span");
+      badge.className = `prio-badge ${tier.cls}`;
+      badge.textContent = `P${next.priority} · ${tier.label.toUpperCase()}`;
+
+      const title = document.createElement("div");
+      title.className = "spotlight-title";
+      title.textContent = next.name;
+
+      const meta = document.createElement("div");
+      meta.className = "spotlight-meta";
+      meta.textContent = `Task #${next.id} · Array Slot pq[${d.nextPendingIndex}] · Highest Priority Pending`;
+
+      left.append(badge, title, meta);
+
+      const actionBtn = document.createElement("button");
+      actionBtn.className = "btn btn-primary";
+      actionBtn.type = "button";
+      actionBtn.textContent = "Process & Complete";
+      actionBtn.addEventListener("click", handleProcessNext);
+
+      body.append(left, actionBtn);
+    }
+
+    function renderTelemetry(d) {
+      const pending = d.tasks.filter((t) => t.status === "Pending");
+      const total = d.size + d.completedSize;
+      const compPct = total > 0 ? Math.round((d.completedSize / total) * 100) : 0;
+      const capPct = Math.min(100, Math.round((d.size / d.maxCapacity) * 100));
+
+      $("pendingCount").textContent = d.size;
+      $("capacityLabel").textContent = `${d.size} / ${d.maxCapacity}`;
+      $("capacityBar").style.width = `${capPct}%`;
+
+      $("completedCount").textContent = d.completedSize;
+      $("completionRate").textContent = `${compPct}%`;
+      $("completionBar").style.width = `${compPct}%`;
+      $("nextIdLabel").textContent = `next_id: #${d.nextId}`;
+
+      const counts = { crit: 0, high: 0, med: 0, low: 0 };
+      for (const t of pending) counts[getTier(t.priority).key]++;
+      const distBar = $("distBar");
+      distBar.innerHTML = "";
+      if (pending.length > 0) {
+        const map = [
+          ["crit", "var(--crit)"],
+          ["high", "var(--high)"],
+          ["med", "var(--med)"],
+          ["low", "var(--low)"],
+        ];
+        for (const [key, color] of map) {
+          if (counts[key] === 0) continue;
+          const seg = document.createElement("div");
+          seg.className = "dist-seg";
+          seg.style.width = `${(counts[key] / pending.length) * 100}%`;
+          seg.style.background = color;
+          distBar.appendChild(seg);
+        }
+      }
+
+      const inspector = $("arrayInspector");
+      inspector.innerHTML = "";
+      if (pending.length === 0) {
+        const note = document.createElement("span");
+        note.style.cssText = "font-size: 0.78rem; color: var(--text-dim);";
+        note.textContent = "pq[0] — empty";
+        inspector.appendChild(note);
+      } else {
+        pending.forEach((task, idx) => {
+          const chip = document.createElement("span");
+          chip.className = `slot-chip ${idx === d.nextPendingIndex ? "next-slot" : ""}`;
+          chip.title = `#${task.id}: ${task.name}`;
+          chip.textContent = `[${idx}] #${task.id}·P${task.priority}`;
+          inspector.appendChild(chip);
+        });
+      }
+    }
+
+    function renderTasks(d) {
+      $("tabPendingCount").textContent = d.size;
+      $("tabCompletedCount").textContent = d.completedSize;
+      $("tabAllCount").textContent = d.size + d.completedSize;
+      $("clearCompletedBtn").style.display =
+        d.completedSize > 0 && state.activeTab !== "Pending" ? "inline-flex" : "none";
+
+      let pendingIdx = 0;
+      let items = d.tasks.map((t) => {
+        const arrayIndex = t.status === "Pending" ? pendingIdx++ : null;
+        return { ...t, arrayIndex };
+      });
+
+      if (state.activeTab !== "All") items = items.filter((t) => t.status === state.activeTab);
+      if (state.tier !== "all") items = items.filter((t) => getTier(t.priority).key === state.tier);
+
+      const q = state.search.trim().toLowerCase();
+      if (q) {
+        items = items.filter((t) => t.name.toLowerCase().includes(q) || `#${t.id}`.includes(q));
+      }
+
+      if (state.sort === "priority") {
+        items.sort((a, b) => {
+          if (a.status !== b.status) return a.status === "Pending" ? -1 : 1;
+          if (b.priority !== a.priority) return b.priority - a.priority;
+          return (a.arrayIndex ?? 9999) - (b.arrayIndex ?? 9999);
+        });
+      } else if (state.sort === "id") {
+        items.sort((a, b) => a.id - b.id);
+      }
+
+      const list = $("taskList");
+      list.innerHTML = "";
+
+      if (items.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.innerHTML = `<h3>No matching tasks</h3><p>Try adjusting your search or filter, or enqueue a new task on the left.</p>`;
+        list.appendChild(empty);
+        return;
+      }
+
+      const nextId = d.nextTask ? d.nextTask.id : null;
+
+      for (const task of items) {
+        const isNext = task.status === "Pending" && task.id === nextId;
+        const isDone = task.status === "Completed";
+        const tier = getTier(task.priority);
+
+        const row = document.createElement("article");
+        row.className = `task-item ${isNext ? "is-next" : ""} ${isDone ? "is-completed" : ""}`;
+
+        const stepper = document.createElement("div");
+        stepper.className = "prio-stepper";
+
+        const decBtn = document.createElement("button");
+        decBtn.type = "button";
+        decBtn.className = "step-btn";
+        decBtn.textContent = "−";
+        decBtn.disabled = task.priority <= 1;
+        decBtn.addEventListener("click", () => handleUpdatePriority(task.id, task.priority - 1));
+
+        const prioBadge = document.createElement("span");
+        prioBadge.className = `prio-badge ${tier.cls}`;
+        prioBadge.textContent = `P${task.priority}`;
+
+        const incBtn = document.createElement("button");
+        incBtn.type = "button";
+        incBtn.className = "step-btn";
+        incBtn.textContent = "+";
+        incBtn.disabled = task.priority >= 10;
+        incBtn.addEventListener("click", () => handleUpdatePriority(task.id, task.priority + 1));
+
+        stepper.append(decBtn, prioBadge, incBtn);
+
+        const body = document.createElement("div");
+        body.className = "task-body";
+
+        const nameEl = document.createElement("div");
+        nameEl.className = "task-name";
+        nameEl.textContent = task.name;
+
+        const meta = document.createElement("div");
+        meta.className = "task-meta";
+
+        const idSpan = document.createElement("span");
+        idSpan.textContent = `#${task.id}`;
+        meta.appendChild(idSpan);
+
+        if (task.arrayIndex !== null) {
+          const slotSpan = document.createElement("span");
+          slotSpan.textContent = `pq[${task.arrayIndex}]`;
+          meta.appendChild(slotSpan);
+        }
+
+        const tierSpan = document.createElement("span");
+        tierSpan.textContent = tier.label;
+        meta.appendChild(tierSpan);
+
+        if (isNext) {
+          const nextTag = document.createElement("span");
+          nextTag.className = "tag tag-next";
+          nextTag.textContent = "Next Up";
+          meta.appendChild(nextTag);
+        } else if (isDone) {
+          const doneTag = document.createElement("span");
+          doneTag.className = "tag tag-done";
+          doneTag.textContent = "Completed";
+          meta.appendChild(doneTag);
+        }
+
+        body.append(nameEl, meta);
+
+        const actions = document.createElement("div");
+        actions.className = "task-actions";
+
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "btn-icon";
+        editBtn.title = "Edit task";
+        editBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`;
+        editBtn.addEventListener("click", () => openEditModal(task));
+
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "btn-icon btn-danger";
+        delBtn.title = "Delete task";
+        delBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>`;
+        delBtn.addEventListener("click", () => handleDelete(task.id));
+
+        actions.append(editBtn, delBtn);
+        row.append(stepper, body, actions);
+        list.appendChild(row);
+      }
+    }
+
+    function render() {
+      if (!state.data) return;
+      renderSpotlight(state.data);
+      renderTelemetry(state.data);
+      renderTasks(state.data);
+    }
+
+    async function loadTasks() { await apiRequest("/api/tasks"); }
+
+    async function handleProcessNext() {
+      const res = await apiRequest("/api/tasks/process", { method: "POST" });
+      if (res) {
+        const msg = res.affectedTask
+          ? `Processed "${res.affectedTask.name}" (P${res.affectedTask.priority})`
+          : res.message;
+        showToast(msg, res.ok);
+      }
+    }
+
+    async function handleUpdatePriority(id, newPriority) {
+      const res = await apiRequest(`/api/tasks/${id}/priority`, {
+        method: "PATCH",
+        body: JSON.stringify({ priority: newPriority }),
+      });
+      if (res) showToast(res.message, res.ok);
+    }
+
+    async function handleDelete(id) {
+      const res = await apiRequest(`/api/tasks/${id}`, { method: "DELETE" });
+      if (res) showToast(res.message, res.ok);
+    }
+
+    function openEditModal(task) {
+      $("editTaskId").value = task.id;
+      $("editNameInput").value = task.name;
+      $("editNameCounter").textContent = `${task.name.length} / 49`;
+      state.editPriority = task.priority;
+      updateEditPrioUI();
+      $("editModal").classList.add("open");
+      $("editNameInput").focus();
+    }
+
+    function closeEditModal() { $("editModal").classList.remove("open"); }
+
+    $("taskNameInput").addEventListener("input", (e) => {
+      $("nameCounter").textContent = `${e.target.value.length} / 49`;
+    });
+
+    $("editNameInput").addEventListener("input", (e) => {
+      $("editNameCounter").textContent = `${e.target.value.length} / 49`;
+    });
+
+    $("insertForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = $("taskNameInput").value.trim();
+      if (!name) return;
+      const res = await apiRequest("/api/tasks", {
+        method: "POST",
+        body: JSON.stringify({ name, priority: state.insertPriority }),
+      });
+      if (res) {
+        showToast(res.message, res.ok);
+        if (res.ok) {
+          $("taskNameInput").value = "";
+          $("nameCounter").textContent = "0 / 49";
+        }
+      }
+    });
+
+    $("editForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = $("editTaskId").value;
+      const name = $("editNameInput").value.trim();
+      if (!name) return;
+      const res = await apiRequest(`/api/tasks/${id}`, {
+        method: "PUT",
+        body: JSON.stringify({ name, priority: state.editPriority }),
+      });
+      if (res) {
+        showToast(res.message, res.ok);
+        if (res.ok) closeEditModal();
+      }
+    });
+
+    $("topProcessBtn").addEventListener("click", handleProcessNext);
+
+    $("clearCompletedBtn").addEventListener("click", async () => {
+      const res = await apiRequest("/api/tasks/clear-completed", { method: "POST" });
+      if (res) showToast(res.message, res.ok);
+    });
+
+    $("resetBtn").addEventListener("click", async () => {
+      const res = await apiRequest("/api/tasks/reset", { method: "POST" });
+      if (res) showToast(res.message, res.ok);
+    });
+
+    document.querySelectorAll(".tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        state.activeTab = tab.dataset.tab;
+        render();
+      });
+    });
+
+    $("searchInput").addEventListener("input", (e) => { state.search = e.target.value; render(); });
+    $("tierFilter").addEventListener("change", (e) => { state.tier = e.target.value; render(); });
+    $("sortSelect").addEventListener("change", (e) => { state.sort = e.target.value; render(); });
+
+    $("closeModalBtn").addEventListener("click", closeEditModal);
+    $("cancelEditBtn").addEventListener("click", closeEditModal);
+    $("editModal").addEventListener("click", (e) => { if (e.target === $("editModal")) closeEditModal(); });
+
+    $("themeBtn").addEventListener("click", () => {
+      const html = document.documentElement;
+      const next = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      html.setAttribute("data-theme", next);
+      localStorage.setItem("pq-theme", next);
+    });
+
+    const savedTheme = localStorage.getItem("pq-theme");
+    if (savedTheme) document.documentElement.setAttribute("data-theme", savedTheme);
+    updateInsertPrioUI();
+    loadTasks();
+  </script>
+</body>
+</html>
