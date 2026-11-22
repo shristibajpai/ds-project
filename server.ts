@@ -120,6 +120,10 @@ class JavaScriptFallbackBackend {
   }
 
   private saveState(): void {
+    if (process.env.VERCEL === '1') {
+      return;
+    }
+
     const lines = [
       `${this.nextId} ${this.pending.length} ${this.completed.length}`,
       ...this.pending.map((task) => `P\t${task.id}\t${task.priority}\t${task.name}`),
@@ -273,7 +277,7 @@ class JavaScriptFallbackBackend {
 }
 
 function ensureCompiledCBinary(): void {
-  if (process.platform === 'win32') {
+  if (process.platform === 'win32' || process.env.VERCEL === '1') {
     return;
   }
   let needsCompile = !fs.existsSync(C_BINARY);
@@ -296,7 +300,7 @@ function ensureCompiledCBinary(): void {
 class CBackendBridge {
   private proc: ChildProcessWithoutNullStreams | null = null;
   private rl: readline.Interface | null = null;
-  private fallbackMode = process.platform === 'win32';
+  private fallbackMode = process.platform === 'win32' || process.env.VERCEL === '1';
   private fallback = new JavaScriptFallbackBackend();
   private pendingResolvers: Array<{
     resolve: (val: CResponse) => void;
@@ -392,7 +396,7 @@ class CBackendBridge {
   }
 }
 
-const cBridge = new CBackendBridge();
+export const cBridge = new CBackendBridge();
 
 function sanitizeSingleLineName(raw: unknown): string {
   if (typeof raw !== 'string') return '';
@@ -581,7 +585,9 @@ async function startServer() {
   });
 }
 
-startServer().catch((err) => {
-  console.error('Failed to start PriorityFlow server:', err);
-  process.exit(1);
-});
+if (process.env.VERCEL !== '1') {
+  startServer().catch((err) => {
+    console.error('Failed to start PriorityFlow server:', err);
+    process.exit(1);
+  });
+}
